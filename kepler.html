@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orbital Period Calculator</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111830;
+      --accent: #7aa2ff;
+      --accent-2: #a8ffef;
+      --text: #e8ecff;
+      --muted: #9fb0d1;
+      --bad: #ff7a8a;
+      --good: #9dffa7;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 700px at 20% -10%, #1a2455, transparent),
+                  radial-gradient(900px 700px at 120% 10%, #1a5545, transparent),
+                  var(--bg);
+      line-height: 1.5;
+      padding: clamp(12px, 2vw, 24px);
+    }
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)) , var(--panel);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(16px, 2.5vw, 28px);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 3.2vw, 38px);
+      letter-spacing: .5px;
+    }
+    .subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: clamp(13px, 1.6vw, 15px);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 820px) {
+      .grid { grid-template-columns: 1.2fr 1fr; }
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 140px; gap: 12px; align-items: end; }
+    .row + .row { margin-top: 12px; }
+
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type="number"], select, button, .preset {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s ease, transform .02s ease;
+    }
+    input::placeholder { color: #9ab; }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    button.primary {
+      background: linear-gradient(180deg, rgba(122,162,255,.25), rgba(122,162,255,.12));
+      border-color: rgba(122,162,255,.45);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary { cursor: pointer; }
+    button:active { transform: translateY(1px); }
+
+    .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+    .preset { cursor: pointer; text-align: left; }
+    .preset strong { display: block; font-size: 14px; }
+    .preset span { color: var(--muted); font-size: 12px; }
+
+    .result {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .stat {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .stat .label { color: var(--muted); font-size: 12px; }
+    .stat .value { font-weight: 800; font-size: 18px; margin-top: 2px; }
+
+    .note { color: var(--muted); font-size: 13px; margin-top: 10px; }
+    .error { color: var(--bad); font-weight: 600; margin-top: 8px; }
+
+    .footer {
+      margin-top: 22px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    code.inline { background: rgba(255,255,255,.06); padding: 2px 6px; border-radius: 8px; }
+
+    .tiny { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <h1>Orbital Period Calculator</h1>
+      <div class="subtitle">Enter the central mass and orbital radius (semi‑major axis) to get the period. Bonus: circular orbital speed.</div>
+
+      <div class="grid" style="margin-top:18px;">
+        <section>
+          <div class="row">
+            <div>
+              <label for="mass">Central mass</label>
+              <input id="mass" type="number" step="any" placeholder="e.g., 5.972e24" />
+            </div>
+            <div>
+              <label for="massUnit" class="tiny">Unit</label>
+              <select id="massUnit">
+                <option value="kg">kg</option>
+                <option value="Me">Earth masses (M🜨)</option>
+                <option value="Ms">Solar masses (M☉)</option>
+                <option value="Mj">Jupiter masses (M♃)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="radius">Orbital radius (semi-major axis)</label>
+              <input id="radius" type="number" step="any" placeholder="e.g., 1.495978707e11" />
+            </div>
+            <div>
+              <label for="radiusUnit" class="tiny">Unit</label>
+              <select id="radiusUnit">
+                <option value="m">m</option>
+                <option value="km">km</option>
+                <option value="Re">Earth radii (R🜨)</option>
+                <option value="Rs">Solar radii (R☉)</option>
+                <option value="AU">AU</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="calcBtn">Calculate period</button>
+            <button class="secondary" id="resetBtn" title="Clear inputs">Reset</button>
+          </div>
+
+          <div class="presets" id="presets">
+            <div class="preset" data-preset="earthSun">
+              <strong>Earth around Sun</strong>
+              <span>M = 1 M☉, a = 1 AU → ~1 year</span>
+            </div>
+            <div class="preset" data-preset="moonEarth">
+              <strong>Moon around Earth</strong>
+              <span>M = 1 M🜨, a ≈ 384,400 km → ~27.3 days</span>
+            </div>
+            <div class="preset" data-preset="issEarth">
+              <strong>ISS around Earth</strong>
+              <span>M = 1 M🜨, a ≈ 6,780 km from center → ~92 min</span>
+            </div>
+            <div class="preset" data-preset="jupiterSun">
+              <strong>Jupiter around Sun</strong>
+              <span>M = 1 M☉, a ≈ 5.203 AU → ~11.86 years</span>
+            </div>
+          </div>
+
+          <div id="error" class="error" style="display:none"></div>
+        </section>
+
+        <section>
+          <div class="result" id="result" aria-live="polite">
+            <div class="stat">
+              <div class="label">Period (seconds)</div>
+              <div class="value" id="T_s">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Period (hours)</div>
+              <div class="value" id="T_h">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Period (days)</div>
+              <div class="value" id="T_d">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Period (years)</div>
+              <div class="value" id="T_y">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Circular orbital speed (m/s)</div>
+              <div class="value" id="v">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">μ = GM (m³/s²)</div>
+              <div class="value" id="mu">—</div>
+            </div>
+          </div>
+          <div class="note">
+            Uses <code class="inline">T = 2π √(r³ / GM)</code> with G = 6.67430×10⁻¹¹ m³·kg⁻¹·s⁻². Assumes a two‑body system and negligible satellite mass.
+          </div>
+        </section>
+      </div>
+
+      <div class="footer">
+        Pro tip: for an ellipse, use the semi‑major axis for <code class="inline">r</code>. For circular orbits, <code class="inline">r</code> is the orbital radius. If results look wild, check your units (we've all been there; the Mars Climate Orbiter certainly was).
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Physical constants
+    const G = 6.67430e-11; // m^3 kg^-1 s^-2
+
+    // Unit scales
+    const M_EARTH = 5.972e24;     // kg
+    const M_SUN   = 1.98847e30;   // kg
+    const M_JUP   = 1.89813e27;   // kg
+
+    const R_EARTH = 6_371_000;    // m
+    const R_SUN   = 6.9634e8;     // m
+    const AU      = 1.495978707e11; // m
+
+    // Helpers
+    const $ = sel => document.querySelector(sel);
+
+    function toKg(value, unit) {
+      const x = Number(value);
+      if (!isFinite(x) || x <= 0) return NaN;
+      switch(unit) {
+        case 'kg': return x;
+        case 'Me': return x * M_EARTH;
+        case 'Ms': return x * M_SUN;
+        case 'Mj': return x * M_JUP;
+        default: return NaN;
+      }
+    }
+
+    function toMeters(value, unit) {
+      const x = Number(value);
+      if (!isFinite(x) || x <= 0) return NaN;
+      switch(unit) {
+        case 'm': return x;
+        case 'km': return x * 1000;
+        case 'Re': return x * R_EARTH;
+        case 'Rs': return x * R_SUN;
+        case 'AU': return x * AU;
+        default: return NaN;
+      }
+    }
+
+    function fmt(x, digits=6) {
+      if (!isFinite(x)) return '—';
+      // Use compact scientific formatting for very large/small
+      const abs = Math.abs(x);
+      if ((abs !== 0 && (abs < 1e-3 || abs >= 1e6))) {
+        return x.toExponential(4);
+      }
+      return Number(x.toFixed(digits)).toString();
+    }
+
+    function setText(id, txt) { $("#"+id).textContent = txt; }
+
+    function clearResults() {
+      ['T_s','T_h','T_d','T_y','v','mu'].forEach(id => setText(id, '—'));
+      const err = $('#error'); err.style.display = 'none'; err.textContent = '';
+    }
+
+    function showError(msg) {
+      const err = $('#error');
+      err.textContent = msg;
+      err.style.display = 'block';
+    }
+
+    function calculate() {
+      clearResults();
+      const massVal = $('#mass').value.trim();
+      const massUnit = $('#massUnit').value;
+      const radiusVal = $('#radius').value.trim();
+      const radiusUnit = $('#radiusUnit').value;
+
+      const M = toKg(massVal, massUnit);
+      const r = toMeters(radiusVal, radiusUnit);
+
+      if (!isFinite(M)) { showError('Please enter a valid, positive central mass.'); return; }
+      if (!isFinite(r)) { showError('Please enter a valid, positive orbital radius (semi-major axis).'); return; }
+
+      // μ = GM
+      const mu = G * M; // m^3/s^2
+
+      // Period T = 2π * sqrt(r^3 / μ)
+      const T = 2 * Math.PI * Math.sqrt(Math.pow(r,3) / mu); // s
+
+      // Circular orbital speed v = sqrt(μ / r)
+      const v = Math.sqrt(mu / r); // m/s
+
+      // Derived units
+      const T_h = T / 3600;
+      const T_d = T / 86400;
+      const T_y = T / (365.25*86400);
+
+      setText('T_s', fmt(T));
+      setText('T_h', fmt(T_h));
+      setText('T_d', fmt(T_d));
+      setText('T_y', fmt(T_y));
+      setText('v', fmt(v));
+      setText('mu', fmt(mu));
+    }
+
+    function applyPreset(name) {
+      const mass = $('#mass');
+      const massUnit = $('#massUnit');
+      const radius = $('#radius');
+      const radiusUnit = $('#radiusUnit');
+
+      if (name === 'earthSun') {
+        mass.value = 1; massUnit.value = 'Ms';
+        radius.value = 1; radiusUnit.value = 'AU';
+      } else if (name === 'moonEarth') {
+        mass.value = 1; massUnit.value = 'Me';
+        radius.value = 384400; radiusUnit.value = 'km';
+      } else if (name === 'issEarth') {
+        mass.value = 1; massUnit.value = 'Me';
+        radius.value = 6780; radiusUnit.value = 'km';
+      } else if (name === 'jupiterSun') {
+        mass.value = 1; massUnit.value = 'Ms';
+        radius.value = 5.203; radiusUnit.value = 'AU';
+      }
+      clearResults();
+      calculate();
+    }
+
+    // Wire up
+    $('#calcBtn').addEventListener('click', calculate);
+    $('#resetBtn').addEventListener('click', () => {
+      $('#mass').value = '';
+      $('#radius').value = '';
+      $('#massUnit').value = 'kg';
+      $('#radiusUnit').value = 'm';
+      clearResults();
+    });
+
+    $('#presets').addEventListener('click', (e) => {
+      const card = e.target.closest('[data-preset]');
+      if (card) applyPreset(card.dataset.preset);
+    });
+
+    // Allow Enter key to trigger calculate
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'SELECT')) {
+          calculate();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
