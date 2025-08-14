@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CM to Feet & Inches Converter</title>
+<title>Height Converter</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,15 +20,16 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     text-align: center;
   }
-  input[type="number"] {
+  input[type="text"], input[type="number"] {
     padding: 0.6rem 1rem;
     font-size: 1rem;
     border-radius: 10px;
     border: 1px solid #ccc;
     width: 150px;
     text-align: center;
+    margin: 0.2rem;
   }
-  input[type="number"]:focus {
+  input:focus {
     border-color: #007bff;
     outline: none;
   }
@@ -40,7 +41,7 @@
     background-color: #007bff;
     color: #fff;
     cursor: pointer;
-    margin-left: 0.5rem;
+    margin-top: 0.5rem;
     transition: background-color 0.3s ease, transform 0.2s ease;
   }
   button:hover {
@@ -72,28 +73,54 @@
 </head>
 <body>
 <div class="converter">
-  <h2>CM → Feet & Inches</h2>
-  <input type="number" id="cmInput" placeholder="Enter cm">
+  <h2>Height Converter</h2>
+  <div>
+    <input type="number" id="cmInput" placeholder="cm">
+    <span>↔</span>
+    <input type="text" id="ftinInput" placeholder="ft'in (ex: 6'4)">
+  </div>
   <button onclick="convert()">Convert</button>
   <div class="result" id="result"></div>
 </div>
 
 <script>
 function convert() {
-  const cm = parseFloat(document.getElementById('cmInput').value);
+  const cmInput = document.getElementById('cmInput').value.trim();
+  const ftinInput = document.getElementById('ftinInput').value.trim();
   const resultDiv = document.getElementById('result');
 
-  if (isNaN(cm) || cm <= 0) {
-    resultDiv.innerHTML = `<span class="number bounce">Invalid!</span>`;
-    return;
+  let output = "";
+
+  if (cmInput) {
+    const cm = parseInt(cmInput);
+    if (isNaN(cm) || cm <= 0) {
+      output = "Invalid cm!";
+    } else {
+      let totalInches = Math.round(cm / 2.54);
+      let feet = Math.floor(totalInches / 12);
+      let inches = totalInches % 12; // max 11
+      output = `${cm} cm = ${feet}′ ${inches}″`;
+    }
+  } else if (ftinInput) {
+    const match = ftinInput.match(/(\d+)\s*'?\s*(\d+)?/);
+    if (!match) {
+      output = "Invalid ft'in!";
+    } else {
+      let feet = parseInt(match[1]);
+      let inches = parseInt(match[2] || 0);
+      if (isNaN(feet) || isNaN(inches) || feet < 0 || inches < 0 || inches > 11) {
+        output = "Invalid ft'in!";
+      } else {
+        let cm = Math.round((feet * 12 + inches) * 2.54);
+        output = `${feet}′ ${inches}″ = ${cm} cm`;
+      }
+    }
+  } else {
+    output = "Enter a value!";
   }
 
-  const totalInches = cm / 2.54;
-  const feet = Math.floor(totalInches / 12);
-  const inches = (totalInches % 12).toFixed(0);
-
-  // Create a new span for the bounce effect
-  resultDiv.innerHTML = `<span class="number bounce">${cm} cm = ${feet}′ ${inches}″</span>`;
+  // Animate
+  resultDiv.innerHTML = `<span class="number bounce">${output}</span>`;
 }
 </script>
 </body>
