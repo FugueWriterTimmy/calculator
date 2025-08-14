@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CM to Feet & Inches Converter</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .converter {
+    background: #fff;
+    padding: 2rem 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  input[type="number"] {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    width: 150px;
+    text-align: center;
+  }
+  input[type="number"]:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  button {
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+  }
+  .result {
+    margin-top: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: bold;
+    height: 2rem;
+    overflow: hidden;
+    position: relative;
+  }
+  .number {
+    display: inline-block;
+    position: relative;
+  }
+  @keyframes bounce {
+    0%   { transform: translateY(-50px); }
+    60%  { transform: translateY(10px); }
+    80%  { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+  }
+  .bounce {
+    animation: bounce 0.6s ease-out;
+  }
+</style>
+</head>
+<body>
+<div class="converter">
+  <h2>CM → Feet & Inches</h2>
+  <input type="number" id="cmInput" placeholder="Enter cm">
+  <button onclick="convert()">Convert</button>
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+function convert() {
+  const cm = parseFloat(document.getElementById('cmInput').value);
+  const resultDiv = document.getElementById('result');
+
+  if (isNaN(cm) || cm <= 0) {
+    resultDiv.innerHTML = `<span class="number bounce">Invalid!</span>`;
+    return;
+  }
+
+  const totalInches = cm / 2.54;
+  const feet = Math.floor(totalInches / 12);
+  const inches = (totalInches % 12).toFixed(0);
+
+  // Create a new span for the bounce effect
+  resultDiv.innerHTML = `<span class="number bounce">${cm} cm = ${feet}′ ${inches}″</span>`;
+}
+</script>
+</body>
+</html>
