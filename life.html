@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Life Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #202124;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      font-weight: bold;
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-bottom: 30px;
+    }
+
+    button:hover {
+      background-color: #155ab6;
+    }
+
+    .box-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .date-box {
+      background-color: #1a73e8;
+      color: white;
+      padding: 14px 30px;
+      border-radius: 16px;
+      font-size: 1.2em;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      min-width: 180px;
+    }
+
+    .details {
+      font-size: 1.1em;
+      color: #333;
+    }
+
+    .details span {
+      font-weight: bold;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🕊️ Life Generator</h1>
+  <button onclick="generateLife()">Generate Life</button>
+
+  <div class="box-container" id="dateBoxes" style="display:none;">
+    <div class="date-box" id="birthBox">Born: Jan 1, 1700</div>
+    <div class="date-box" id="deathBox">Died: Jan 1, 1770</div>
+  </div>
+
+  <div class="details" id="extraInfo" style="display:none;">
+    <div><span>Age at death:</span> <span id="ageInfo">70 years</span></div>
+    <div><span>Cause of death:</span> <span id="causeInfo">Plague</span></div>
+    <div><span>Nationality:</span> <span id="nationInfo">Ottoman</span></div>
+  </div>
+
+  <script>
+    const causesOfDeath = {
+      pre1800: {
+        child: ["smallpox", "black plague", "drowned in a river", "scurvy", "rickets", "cholera", "cart accident"],
+        teen: ["dueling accident", "fall from castle wall", "typhoid", "horseback fall", "witch trial", "malaria"],
+        adult: ["duel gone wrong", "battle injury", "overwork in fields", "execution", "infection", "plague", "famine"],
+        elder: ["natural causes", "stroke", "gout", "heart failure", "old age"]
+      },
+      "1800to1899": {
+        child: ["typhoid fever", "measles", "whooping cough", "fall into machinery", "dysentery", "smallpox"],
+        teen: ["train accident", "factory accident", "scarlet fever", "fall from barn", "infection", "malnutrition"],
+        adult: ["industrial accident", "tuberculosis", "gunshot in saloon", "cholera", "poor sanitation"],
+        elder: ["stroke", "heart failure", "consumption", "natural causes"]
+      },
+      "1900to1999": {
+        child: ["polio", "measles", "freak accident", "bike crash", "fire", "leukemia", "sudden illness"],
+        teen: ["car accident", "drowning", "gang violence", "infection", "accidental shooting", "illness"],
+        adult: ["heart attack", "cancer", "war injury", "drug overdose", "plane crash", "automobile accident"],
+        elder: ["stroke", "heart failure", "cancer", "natural causes", "Alzheimer's"]
+      },
+      "2000plus": {
+        child: ["cancer", "genetic disorder", "rare virus", "car accident", "accidental drowning", "congenital defect"],
+        teen: ["mental health crisis", "car crash", "extreme sport accident", "infection", "violence"],
+        adult: ["heart attack", "cancer", "drug overdose", "pandemic virus", "extreme sports", "accident"],
+        elder: ["stroke", "heart failure", "Alzheimer's", "natural causes", "old age"]
+      },
+      future: {
+        child: ["malfunctioning nanobot injection", "gravity chamber collapse", "rogue AI nanny"],
+        teen: ["zero-G accident", "virtual overdose", "alien parasite infection", "teleportation mishap"],
+        adult: ["quantum implosion", "AI duel", "hyperspace embolism", "genetic destabilization"],
+        elder: ["neural data corruption", "cryo-chamber failure", "soul upload error", "lived 284 perfect years"]
+      }
+    };
+
+    const nationalities = {
+      pre1800: ["Ottoman", "French", "Mughal", "Qing", "Spanish", "Venetian", "Muscovite", "Persian", "Austrian", "Zulu"],
+      "1800to1899": ["British", "Prussian", "Russian", "American", "Austro-Hungarian", "Mexican", "Brazilian", "Ottoman", "Siamese", "Zulu"],
+      "1900to1999": ["American", "Soviet", "German", "Chinese", "Japanese", "Canadian", "British", "Indian", "Vietnamese", "South African"],
+      "2000plus": ["American", "Canadian", "Russian", "Ukrainian", "Brazilian", "Indian", "Chinese", "Japanese", "German", "South Korean"],
+      future: ["Earthling", "Martian", "Lunar", "Venusian", "Terran", "Europan", "Titanese", "Galactic Citizen"]
+    };
+
+    function getEra(year) {
+      if (year < 1800) return "pre1800";
+      if (year < 1900) return "1800to1899";
+      if (year < 2000) return "1900to1999";
+      if (year < 2200) return "2000plus";
+      return "future";
+    }
+
+    function getMaxAgeByEra(birthYear) {
+      if (birthYear < 1700) return 60;
+      if (birthYear < 1800) return 70;
+      if (birthYear < 1900) return 85;
+      if (birthYear < 2000) return 100;
+      if (birthYear < 2200) return 150;
+      if (birthYear < 2500) return 200;
+      return 300;
+    }
+
+    function getRandomFromArray(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function getRandomCause(age, deathYear) {
+      let group = "adult";
+      if (age < 13) group = "child";
+      else if (age < 20) group = "teen";
+      else if (age >= 70) group = "elder";
+
+      const era = getEra(deathYear);
+      return getRandomFromArray(causesOfDeath[era][group]);
+    }
+
+    function getRandomNationality(birthYear) {
+      const era = getEra(birthYear);
+      return getRandomFromArray(nationalities[era]);
+    }
+
+    function getRandomValidDate(year) {
+      const month = Math.floor(Math.random() * 12);
+      const tempDate = new Date(year, month + 1, 0);
+      const maxDay = tempDate.getDate();
+      const day = Math.floor(Math.random() * maxDay) + 1;
+      return new Date(year, month, day);
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function generateLife() {
+      const birthYear = Math.floor(Math.random() * (2999 - 1600 + 1)) + 1600;
+      const birthDate = getRandomValidDate(birthYear);
+
+      const minDeathYear = birthYear + 3;
+      const maxDeathYear = birthYear + getMaxAgeByEra(birthYear);
+      const deathYear = Math.floor(Math.random() * (maxDeathYear - minDeathYear + 1)) + minDeathYear;
+      const deathDate = getRandomValidDate(deathYear);
+
+      let ageAtDeath = deathDate.getFullYear() - birthDate.getFullYear();
+      if (
+        deathDate.getMonth() < birthDate.getMonth() ||
+        (deathDate.getMonth() === birthDate.getMonth() && deathDate.getDate() < birthDate.getDate())
+      ) {
+        ageAtDeath--;
+      }
+
+      const cause = getRandomCause(ageAtDeath, deathYear);
+      const nationality = getRandomNationality(birthYear);
+
+      document.getElementById("birthBox").textContent = `Born: ${formatDate(birthDate)}`;
+      document.getElementById("deathBox").textContent = `Died: ${formatDate(deathDate)}`;
+      document.getElementById("ageInfo").textContent = `${ageAtDeath} years`;
+      document.getElementById("causeInfo").textContent = cause;
+      document.getElementById("nationInfo").textContent = nationality;
+
+      document.getElementById("dateBoxes").style.display = "flex";
+      document.getElementById("extraInfo").style.display = "block";
+    }
+  </script>
+
+</body>
+</html>
