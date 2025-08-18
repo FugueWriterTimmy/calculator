@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Height Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to right, #ece9e6, #ffffff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    label {
+      font-weight: 500;
+      margin-top: 15px;
+      display: block;
+      color: #555;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #result {
+      margin-top: 25px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Adult Height Estimator</h2>
+
+    <label for="parent1">Father's Height (cm):</label>
+    <input type="number" id="parent1" placeholder="e.g. 175" />
+
+    <label for="parent2">Mother's Height (cm):</label>
+    <input type="number" id="parent2" placeholder="e.g. 165" />
+
+    <label for="childHeight">Child's Current Height (cm):</label>
+    <input type="number" id="childHeight" placeholder="e.g. 140" />
+
+    <label for="childAge">Child's Age (years):</label>
+    <input type="number" id="childAge" placeholder="e.g. 13" />
+
+    <label for="gender">Child's Gender:</label>
+    <select id="gender">
+      <option value="boy">Boy</option>
+      <option value="girl">Girl</option>
+    </select>
+
+    <button onclick="calculateHeight()">Calculate</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function calculateHeight() {
+      const parent1 = parseFloat(document.getElementById("parent1").value);
+      const parent2 = parseFloat(document.getElementById("parent2").value);
+      const childHeight = parseFloat(document.getElementById("childHeight").value);
+      const childAge = parseFloat(document.getElementById("childAge").value);
+      const gender = document.getElementById("gender").value;
+
+      if (
+        isNaN(parent1) || isNaN(parent2) ||
+        isNaN(childHeight) || isNaN(childAge)
+      ) {
+        document.getElementById("result").textContent = "Please fill in all fields correctly.";
+        return;
+      }
+
+      let adjustedParentAvg = (parent1 + parent2) / 2;
+      adjustedParentAvg += (gender === "boy" ? 6.5 : -6.5);
+
+      const growthPotential = childHeight + (18 - childAge);
+      const estimatedHeight = (adjustedParentAvg + growthPotential) * 0.54;
+
+      document.getElementById("result").textContent =
+        "Estimated Adult Height: " + estimatedHeight.toFixed(1) + " cm";
+    }
+  </script>
+</body>
+</html>
