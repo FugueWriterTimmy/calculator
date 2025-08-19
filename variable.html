@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Equation Evaluator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f3f6;
+      color: #333;
+      padding: 30px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .variable-input {
+      margin-bottom: 16px;
+    }
+
+    .result-box {
+      background: #ffffff;
+      border-left: 5px solid #2ecc71;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c3e50;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Smart Equation Evaluator</h2>
+
+  <label for="equation">Enter your expression:</label>
+  <input type="text" id="equation" placeholder="e.g. 3*a + b^2 - sqrt(c)">
+
+  <div id="variables"></div>
+
+  <div class="result-box">
+    Result: <span id="result">—</span>
+  </div>
+
+  <div class="footer-note">
+    Supports: +, -, *, /, ^, sqrt, sin, cos, log, etc.
+  </div>
+
+  <script>
+    const equationInput = document.getElementById("equation");
+    const variablesDiv = document.getElementById("variables");
+    const resultSpan = document.getElementById("result");
+
+    function extractVariables(expr) {
+      const functions = ['sin','cos','tan','log','sqrt','abs','asin','acos','atan','exp','pow','floor','ceil','round','min','max','PI','E'];
+      const matches = expr.match(/[a-zA-Z_]\w*/g) || [];
+      return [...new Set(matches.filter(name => isNaN(name) && !functions.includes(name)))];
+    }
+
+    function createInputs(variableNames) {
+      variablesDiv.innerHTML = '';
+      variableNames.forEach(name => {
+        const container = document.createElement('div');
+        container.className = 'variable-input';
+
+        const label = document.createElement('label');
+        label.innerText = `Value for ${name}:`;
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = `var_${name}`;
+        input.value = 0;
+        input.addEventListener('input', evaluate);
+
+        container.appendChild(label);
+        container.appendChild(input);
+        variablesDiv.appendChild(container);
+      });
+    }
+
+    function evaluate() {
+      let expr = equationInput.value;
+
+      // Replace ^ with ** for exponentiation
+      expr = expr.replace(/(\w|\))\s*\^\s*(\w|\()/g, '$1**$2');
+
+      const vars = extractVariables(expr);
+      const scope = {};
+
+      for (const name of vars) {
+        const input = document.getElementById(`var_${name}`);
+        if (input) {
+          scope[name] = parseFloat(input.value) || 0;
+        }
+      }
+
+      try {
+        // Add "Math." before known functions/constants
+        expr = expr.replace(/\b(sin|cos|tan|log|sqrt|abs|asin|acos|atan|exp|pow|floor|ceil|round|min|max|PI|E)\b/g, 'Math.$1');
+        const func = new Function(...Object.keys(scope), "return " + expr + ";");
+        const result = func(...Object.values(scope));
+        resultSpan.innerText = result;
+      } catch (e) {
+        resultSpan.innerText = "⚠️ Invalid expression!";
+      }
+    }
+
+    equationInput.addEventListener('input', () => {
+      const vars = extractVariables(equationInput.value);
+      createInputs(vars);
+      evaluate();
+    });
+  </script>
+</body>
+</html>
