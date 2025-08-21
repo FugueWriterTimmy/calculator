@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vertis Height Converter</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      color: #333;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      font-size: 1em;
+    }
+    .result {
+      background: #e0f7e0;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #a0d0a0;
+    }
+  </style>
+</head>
+<body>
+  <h2>🌐 Vertis Height Unit Converter</h2>
+
+  <h3>Convert SI Meters ➜ Vertis Units</h3>
+  <label>Enter height in meters:</label>
+  <input type="number" id="metersInput" step="any">
+  <button onclick="convertToVertis()">Convert to Vertis</button>
+  <div class="result" id="vertisResult"></div>
+
+  <h3>Convert Vertis Units ➜ SI Meters</h3>
+  <label>Enter value:</label>
+  <input type="number" id="vertisValueInput" step="any">
+  <label>Select Vertis Prefix:</label>
+  <select id="vertisPrefixInput">
+    <option value="0.00005787">duzi (dz)</option>
+    <option value="0.0006944">mini (mi)</option>
+    <option value="0.008333">subi (sb)</option>
+    <option value="0.1" selected>vert (v)</option>
+    <option value="1.2">deci (dc)</option>
+    <option value="14.4">hexi (hx)</option>
+    <option value="172.8">kili (kl)</option>
+    <option value="2073.6">mega (mg)</option>
+    <option value="24883.2">giga (gg)</option>
+  </select>
+  <button onclick="convertToMeters()">Convert to Meters</button>
+  <div class="result" id="metersResult"></div>
+
+  <script>
+    const vertBase = 0.1;
+
+    const prefixes = [
+      { name: "giga", symbol: "gg", factor: 24883.2 },
+      { name: "mega", symbol: "mg", factor: 2073.6 },
+      { name: "kili", symbol: "kl", factor: 172.8 },
+      { name: "hexi", symbol: "hx", factor: 14.4 },
+      { name: "deci", symbol: "dc", factor: 1.2 },
+      { name: "vert", symbol: "v", factor: 0.1 },
+      { name: "subi", symbol: "sb", factor: 0.008333 },
+      { name: "mini", symbol: "mi", factor: 0.0006944 },
+      { name: "duzi", symbol: "dz", factor: 0.00005787 }
+    ];
+
+    function convertToVertis() {
+      const meters = parseFloat(document.getElementById('metersInput').value);
+      if (isNaN(meters)) return;
+
+      let output = `Meters: <strong>${meters}</strong><br><br>`;
+      for (let p of prefixes) {
+        const val = meters / p.factor;
+        output += `${val.toFixed(5)} ${p.name} (${p.symbol})<br>`;
+      }
+
+      document.getElementById('vertisResult').innerHTML = output;
+    }
+
+    function convertToMeters() {
+      const value = parseFloat(document.getElementById('vertisValueInput').value);
+      const factor = parseFloat(document.getElementById('vertisPrefixInput').value);
+      if (isNaN(value) || isNaN(factor)) return;
+
+      const meters = value * factor;
+      document.getElementById('metersResult').innerHTML = `= <strong>${meters.toFixed(6)} meters</strong>`;
+    }
+  </script>
+</body>
+</html>
