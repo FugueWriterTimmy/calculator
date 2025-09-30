@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hectoc Solver (Exact with Brackets)</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        background: linear-gradient(to bottom, #dbe6f6, #f0f4fa);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .solver-card {
+        background: #ffffff;
+        padding: 2em;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        width: 400px;
+        text-align: center;
+    }
+
+    h1 {
+        color: #2c3e50;
+        margin-bottom: 1em;
+        font-size: 1.8em;
+    }
+
+    input {
+        width: 80%;
+        padding: 0.6em;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-bottom: 1em;
+        font-size: 1em;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    input:focus {
+        border-color: #3498db;
+    }
+
+    button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 0.7em 1.5em;
+        font-size: 1em;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    button:hover {
+        background-color: #2980b9;
+    }
+
+    pre {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 1em;
+        text-align: left;
+        margin-top: 1em;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    }
+</style>
+</head>
+<body>
+
+<div class="solver-card">
+    <h1>Hectoc Solver</h1>
+    <input type="text" id="digits" maxlength="6" pattern="\d{6}" placeholder="Enter 6 digits">
+    <br>
+    <button onclick="solve()">Solve</button>
+    <pre id="output">Enter a 6-digit sequence and hit Solve.</pre>
+</div>
+
+<script>
+function solve() {
+    const digits = document.getElementById('digits').value;
+    const output = document.getElementById('output');
+    if (!/^\d{6}$/.test(digits)) {
+        output.textContent = "Please enter exactly 6 digits (0–9).";
+        return;
+    }
+
+    const ops = ['+', '-', '*', '/', '^', '']; // '' for digit merge
+    const results = new Set();
+
+    function evalExpr(expr) {
+        try {
+            return Function('"use strict"; return (' + expr.replace(/\^/g, '**') + ')')();
+        } catch { return null; }
+    }
+
+    function generateExpressions(nums) {
+        if (nums.length === 1) return [nums[0]]; // base case
+
+        let exprs = [];
+
+        for (let i = 1; i < nums.length; i++) {
+            const leftParts = generateExpressions(nums.slice(0, i));
+            const rightParts = generateExpressions(nums.slice(i));
+
+            for (let left of leftParts) {
+                for (let right of rightParts) {
+                    for (let op of ops) {
+                        if (op === '/' && parseInt(right) === 0) continue; // avoid divide by zero
+
+                        let candidate = op === '' ? left + right : '(' + left + op + right + ')';
+
+                        // Skip non-integer divisions
+                        if (op === '/') {
+                            let evalLeft = evalExpr(left);
+                            let evalRight = evalExpr(right);
+                            if (evalLeft === null || evalRight === 0 || evalLeft % evalRight !== 0) continue;
+                        }
+
+                        // Skip huge powers
+                        if (op === '^') {
+                            let val = evalExpr(candidate);
+                            if (!Number.isFinite(val) || Math.abs(val) > 1e6) continue;
+                        }
+
+                        exprs.push(candidate);
+                    }
+                }
+            }
+        }
+
+        return exprs;
+    }
+
+    const initialNums = digits.split('');
+    const allExprs = generateExpressions(initialNums);
+
+    for (let expr of allExprs) {
+        const val = evalExpr(expr);
+        if (val === 100) results.add(expr);
+    }
+
+    output.textContent = results.size > 0 
+        ? "Solutions found:\n" + Array.from(results).join("\n") 
+        : "No solution found.";
+}
+</script>
+
+</body>
+</html>
