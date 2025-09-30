@@ -81,7 +81,7 @@
     <input type="text" id="digits" maxlength="6" pattern="\d{6}" placeholder="Enter 6 digits">
     <br>
     <button onclick="solve()">Solve</button>
-    <pre id="output">Enter a 6-digit sequence and hit Solve.</pre>
+    <pre id="output">Enter a 6-digit sequence</pre>
 </div>
 
 <script>
@@ -89,7 +89,7 @@ function solve() {
     const digits = document.getElementById('digits').value;
     const output = document.getElementById('output');
     if (!/^\d{6}$/.test(digits)) {
-        output.textContent = "Please enter exactly 6 digits (0–9).";
+        output.textContent = "Please enter exactly 6 digits (1–9).";
         return;
     }
 
