@@ -81,7 +81,7 @@
     <input type="text" id="digits" maxlength="6" pattern="\d{6}" placeholder="Enter 6 digits">
     <br>
     <button onclick="solve()">Solve</button>
-    <pre id="output">Enter a 6-digit sequence</pre>
+    <pre id="output">Enter a 6-digit sequence and hit Solve.</pre>
 </div>
 
 <script>
@@ -148,9 +148,12 @@ function solve() {
         if (val === 100) results.add(expr);
     }
 
-    output.textContent = results.size > 0 
-        ? "Solutions found:\n" + Array.from(results).join("\n") 
-        : "No solution found.";
+    if (results.size > 0) {
+        const sorted = Array.from(results).sort((a, b) => a.length - b.length);
+        output.textContent = "Solutions found:\n" + sorted.join("\n");
+    } else {
+        output.textContent = "No solution found.";
+    }
 }
 </script>
 
