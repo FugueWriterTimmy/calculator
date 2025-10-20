@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Blindfold Chess Trainer</title>
+  <style>
+    :root{--light:#f0d9b5;--dark:#b58863;--accent:#2b6cb0;--start:#86efac;--end:#93c5fd;--path:#fde68a}
+    body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;display:flex;align-items:flex-start;gap:24px;padding:28px;background:#f7fafc;color:#111;flex-wrap:wrap}
+    .card{background:white;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06);padding:18px;width:100%;max-width:760px;box-sizing:border-box}
+    h1{font-size:20px;margin:0 0 10px}
+    .board{display:grid;grid-template-columns:repeat(8,44px);grid-template-rows:repeat(8,44px);gap:0;border-radius:8px;overflow:hidden;border:1px solid #e6edf3}
+    .sq{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:600;transition:background 0.25s ease}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    button{padding:8px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+    button.secondary{background:#e2e8f0;color:#111}
+    .result{margin-top:12px;padding:8px;border-radius:8px;background:#f1f5f9}
+    .muted{color:#475569;font-size:13px}
+    .path-input{width:100%;padding:8px;border-radius:8px;border:1px solid #e6edf3;margin-top:8px;box-sizing:border-box}
+    .hint{margin-top:8px;color:#0f5132;background:#d1fae5;padding:8px;border-radius:6px}
+    .bad{color:#7f1d1d;background:#fee2e2;padding:8px;border-radius:6px}
+    .controls .small{padding:6px 8px;font-size:13px}
+    .meta{font-size:13px;color:#475569;margin-top:6px}
+    .board-wrap{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-start;width:100%}
+    .legend{font-size:13px;color:#475569}
+    .highlight-start{background:var(--start)!important}
+    .highlight-end{background:var(--end)!important}
+    .highlight-path{background:var(--path)!important}
+    .small-note{font-size:12px;color:#64748b}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Blindfold Trainer — Square Color</h1>
+    <div class="muted">No pressure: I will show a random square and you guess its color (white or black).</div>
+    <div style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="font-size:28px;font-weight:700" id="sqLabel">?</div>
+      <div style="display:flex;flex-direction:column;flex:1;min-width:200px">
+        <div class="controls">
+          <button id="newSquareBtn">New square</button>
+          <button class="secondary small" id="showOnBoardBtn">Show on board</button>
+        </div>
+        <div class="controls" style="margin-top:8px">
+          <button id="guessWhite">Guess White</button>
+          <button id="guessBlack">Guess Black</button>
+        </div>
+        <div id="squareFeedback" class="result" style="display:none"></div>
+      </div>
+    </div>
+    <div class="meta">Tip: squares alternate color. Files a, c, e, g start with dark on rank 1.</div>
+  </div>
+
+  <div class="card">
+    <h1>Knight Transport Exercise</h1>
+    <div class="muted">Transport a knight in your head from the <strong id="fromLabel">?</strong> square to <strong id="toLabel">?</strong>. Type the path the knight would take as space-separated squares (e.g. g1 e2 f4).</div>
+    <div style="margin-top:12px" class="board-wrap">
+      <div style="flex-shrink:0">
+        <div id="miniBoard" class="board" aria-hidden="true"></div>
+        <div class="legend small-note">Green: start · Blue: target · Yellow: user path</div>
+      </div>
+      <div style="flex:1;min-width:280px">
+        <div class="controls">
+          <button id="newKnightBtn">New pair</button>
+          <button class="secondary" id="showShortestBtn">Show shortest path</button>
+        </div>
+        <input id="pathInput" class="path-input" placeholder="Type path: e.g. g1 e2 f4" autocomplete="off" />
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="submitPath">Submit path</button>
+          <button class="secondary" id="clearPath">Clear</button>
+        </div>
+        <div id="pathFeedback" style="margin-top:10px"></div>
+        <div class="meta">Notes: moves are validated as knight moves; path must start at the start square and end at the target.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const files=['a','b','c','d','e','f','g','h'];
+    function rndInt(n){return Math.floor(Math.random()*n)}
+    function randSquare(){return files[rndInt(8)]+(1+rndInt(8))}
+    function squareColor(square){const file=square[0];const rank=Number(square[1]);const fIdx=files.indexOf(file);return((fIdx+rank)%2===0)?'white':'black';}
+    function algebraicToXY(s){const f=files.indexOf(s[0]);const r=8-Number(s[1]);return[f,r]}
+    function xyToAlg(x,y){return files[x]+(8-y)}
+
+    function buildBoard(containerId){const container=document.getElementById(containerId);container.innerHTML='';for(let r=0;r<8;r++){for(let f=0;f<8;f++){const sq=document.createElement('div');sq.className='sq';const alg=xyToAlg(f,r);const isWhite=((f+(8-r))%2===0);sq.style.background=isWhite?'var(--light)':'var(--dark)';sq.dataset.alg=alg;sq.id=(containerId+'-'+alg);container.appendChild(sq);}}}
+    buildBoard('miniBoard');
+
+    let currentSquare=null;const sqLabel=document.getElementById('sqLabel');const squareFeedback=document.getElementById('squareFeedback');
+    document.getElementById('newSquareBtn').addEventListener('click',()=>{currentSquare=randSquare();sqLabel.textContent=currentSquare;squareFeedback.style.display='none';});
+    document.getElementById('showOnBoardBtn').addEventListener('click',()=>{if(!currentSquare){alert('Click New square first');return}document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-start'));const el=document.getElementById('miniBoard-'+currentSquare);if(el)el.classList.add('highlight-start');});
+    document.getElementById('guessWhite').addEventListener('click',()=>handleGuess('white'));
+    document.getElementById('guessBlack').addEventListener('click',()=>handleGuess('black'));
+    function handleGuess(guess){if(!currentSquare){alert('Click New square first');return}const correct=squareColor(currentSquare);squareFeedback.style.display='block';if(guess===correct){squareFeedback.innerHTML=`✅ Correct — ${currentSquare} is ${correct}.`;}else{squareFeedback.innerHTML=`❌ Nope — ${currentSquare} is ${correct}.`;}}
+
+    let fromSq=null,toSq=null;const fromLabel=document.getElementById('fromLabel');const toLabel=document.getElementById('toLabel');const pathInput=document.getElementById('pathInput');const pathFeedback=document.getElementById('pathFeedback');
+    function placeHighlights(){document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-start','highlight-end','highlight-path'));if(fromSq)document.getElementById('miniBoard-'+fromSq).classList.add('highlight-start');if(toSq)document.getElementById('miniBoard-'+toSq).classList.add('highlight-end');}
+    function newKnightPair(){do{fromSq=randSquare();toSq=randSquare();}while(fromSq===toSq);fromLabel.textContent=fromSq;toLabel.textContent=toSq;pathInput.value='';pathFeedback.innerHTML='';placeHighlights();}
+    document.getElementById('newKnightBtn').addEventListener('click',newKnightPair);
+    function isKnightMove(a,b){const[ax,ay]=algebraicToXY(a);const[bx,by]=algebraicToXY(b);const dx=Math.abs(ax-bx),dy=Math.abs(ay-by);return(dx===1&&dy===2)||(dx===2&&dy===1);}
+    function validatePath(arr){if(arr.length===0)return{ok:false,msg:'Enter a path.'};if(arr[0]!==fromSq)return{ok:false,msg:`Path must start at ${fromSq}.`};if(arr[arr.length-1]!==toSq)return{ok:false,msg:`Path must end at ${toSq}.`};for(let i=0;i<arr.length;i++){if(!/^([a-h][1-8])$/.test(arr[i]))return{ok:false,msg:`Invalid square: ${arr[i]}`};if(i>0&&!isKnightMove(arr[i-1],arr[i]))return{ok:false,msg:`Illegal knight move: ${arr[i-1]} → ${arr[i]}`};}return{ok:true,msg:'Valid path.'};}
+    function knightShortestPath(start,goal){const q=[start];const prev={};prev[start]=null;while(q.length){const cur=q.shift();if(cur===goal)break;const[cx,cy]=algebraicToXY(cur);const deltas=[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]];for(const[dx,dy]of deltas){const nx=cx+dx,ny=cy+dy;if(nx<0||nx>7||ny<0||ny>7)continue;const alg=xyToAlg(nx,ny);if(!(alg in prev)){prev[alg]=cur;q.push(alg);}}}if(!(goal in prev))return null;const path=[];let cur=goal;while(cur){path.push(cur);cur=prev[cur]}path.reverse();return path;}
+    document.getElementById('submitPath').addEventListener('click',()=>{const raw=pathInput.value.trim().toLowerCase().replace(/\s+/g,' ');if(!raw){pathFeedback.innerHTML='<div class="bad">Please type a path.</div>';return}const arr=raw.split(' ');const v=validatePath(arr);if(!v.ok){pathFeedback.innerHTML=`<div class="bad">${v.msg}</div>`;return}const shortest=knightShortestPath(fromSq,toSq);const userLen=arr.length-1;const idealLen=shortest.length-1;let msg=`<div class="hint">✅ Valid knight path. Moves: ${userLen}.</div>`;if(userLen===idealLen)msg+=`<div class="hint">Nice — you found a shortest path (${idealLen} moves).</div>`;else msg+=`<div class="muted">Shortest possible is ${idealLen} moves. Your path used ${userLen} moves.</div>`;pathFeedback.innerHTML=msg;document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-path'));arr.forEach(sq=>{const el=document.getElementById('miniBoard-'+sq);if(el)el.classList.add('highlight-path')});});
+    document.getElementById('clearPath').addEventListener('click',()=>{pathInput.value='';pathFeedback.innerHTML='';document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-path'))});
+    document.getElementById('showShortestBtn').addEventListener('click',()=>{if(!fromSq||!toSq){alert('Generate a pair first');return}const shortest=knightShortestPath(fromSq,toSq);if(!shortest){pathFeedback.innerHTML='<div class="bad">No path found (this should not happen).</div>';return}pathInput.value=shortest.join(' ');pathFeedback.innerHTML=`<div class="hint">Shortest path shown (${shortest.length-1} moves).</div>`;document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-path'));shortest.forEach(sq=>{const el=document.getElementById('miniBoard-'+sq);if(el)el.classList.add('highlight-path')});});
+    document.getElementById('newSquareBtn').click();
+    newKnightPair();
+  </script>
+</body>
+</html>
