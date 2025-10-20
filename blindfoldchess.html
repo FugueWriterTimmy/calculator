@@ -27,6 +27,7 @@
     .highlight-end{background:var(--end)!important}
     .highlight-path{background:var(--path)!important}
     .small-note{font-size:12px;color:#64748b}
+    .hidden{display:none!important}
   </style>
 </head>
 <body>
@@ -55,8 +56,11 @@
     <div class="muted">Transport a knight in your head from the <strong id="fromLabel">?</strong> square to <strong id="toLabel">?</strong>. Type the path the knight would take as space-separated squares (e.g. g1 e2 f4).</div>
     <div style="margin-top:12px" class="board-wrap">
       <div style="flex-shrink:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div class="legend small-note">Green: start · Blue: target · Yellow: user path</div>
+          <button class="secondary small" id="toggleBoardBtn">Hide board</button>
+        </div>
         <div id="miniBoard" class="board" aria-hidden="true"></div>
-        <div class="legend small-note">Green: start · Blue: target · Yellow: user path</div>
       </div>
       <div style="flex:1;min-width:280px">
         <div class="controls">
@@ -102,6 +106,15 @@
     document.getElementById('submitPath').addEventListener('click',()=>{const raw=pathInput.value.trim().toLowerCase().replace(/\s+/g,' ');if(!raw){pathFeedback.innerHTML='<div class="bad">Please type a path.</div>';return}const arr=raw.split(' ');const v=validatePath(arr);if(!v.ok){pathFeedback.innerHTML=`<div class="bad">${v.msg}</div>`;return}const shortest=knightShortestPath(fromSq,toSq);const userLen=arr.length-1;const idealLen=shortest.length-1;let msg=`<div class="hint">✅ Valid knight path. Moves: ${userLen}.</div>`;if(userLen===idealLen)msg+=`<div class="hint">Nice — you found a shortest path (${idealLen} moves).</div>`;else msg+=`<div class="muted">Shortest possible is ${idealLen} moves. Your path used ${userLen} moves.</div>`;pathFeedback.innerHTML=msg;document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-path'));arr.forEach(sq=>{const el=document.getElementById('miniBoard-'+sq);if(el)el.classList.add('highlight-path')});});
     document.getElementById('clearPath').addEventListener('click',()=>{pathInput.value='';pathFeedback.innerHTML='';document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-path'))});
     document.getElementById('showShortestBtn').addEventListener('click',()=>{if(!fromSq||!toSq){alert('Generate a pair first');return}const shortest=knightShortestPath(fromSq,toSq);if(!shortest){pathFeedback.innerHTML='<div class="bad">No path found (this should not happen).</div>';return}pathInput.value=shortest.join(' ');pathFeedback.innerHTML=`<div class="hint">Shortest path shown (${shortest.length-1} moves).</div>`;document.querySelectorAll('#miniBoard .sq').forEach(s=>s.classList.remove('highlight-path'));shortest.forEach(sq=>{const el=document.getElementById('miniBoard-'+sq);if(el)el.classList.add('highlight-path')});});
+
+    // Hide board toggle
+    const toggleBtn=document.getElementById('toggleBoardBtn');
+    const miniBoard=document.getElementById('miniBoard');
+    toggleBtn.addEventListener('click',()=>{
+      const hidden=miniBoard.classList.toggle('hidden');
+      toggleBtn.textContent=hidden?'Show board':'Hide board';
+    });
+
     document.getElementById('newSquareBtn').click();
     newKnightPair();
   </script>
