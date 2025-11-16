@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interslavic Cyrillic ↔ Latin Converter</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background: #f7f7f7;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .converter {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .box {
+      flex: 1 1 400px;
+      display: flex;
+      flex-direction: column;
+    }
+    textarea {
+      width: 100%;
+      min-height: 250px;
+      font-size: 18px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    label {
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Interslavic Cyrillic ↔ Latin Converter</h1>
+
+<div class="converter">
+  <div class="box">
+    <label for="cyrillic">Cyrillic</label>
+    <textarea id="cyrillic" placeholder="Type Cyrillic here..."></textarea>
+  </div>
+  <div class="box">
+    <label for="latin">Latin</label>
+    <textarea id="latin" placeholder="Type Latin here..."></textarea>
+  </div>
+</div>
+
+<script>
+  // Based on standard Interslavic orthography. :contentReference[oaicite:1]{index=1}
+  const cyrToLat = {
+    "А":"A", "Б":"B", "В":"V", "Г":"G", "Д":"D", "Е":"E", "Є":"Ě",
+    "Ж":"Ž", "З":"Z", "И":"I", "Ы":"Y", "Ј":"J", "К":"K", "Л":"L",
+    "Љ":"Lj", "М":"M", "Н":"N", "Њ":"Nj", "О":"O", "П":"P", "Р":"R",
+    "С":"S", "Т":"T", "У":"U", "Ф":"F", "Х":"H", "Ц":"C", "Ч":"Č", "Ш":"Š",
+    // lowercase
+    "а":"a", "б":"b", "в":"v", "г":"g", "д":"d", "е":"e", "є":"ě",
+    "ж":"ž", "з":"z", "и":"i", "ы":"y", "ј":"j", "к":"k", "л":"l",
+    "љ":"lj", "м":"m", "н":"n", "њ":"nj", "о":"o", "п":"p", "р":"r",
+    "с":"s", "т":"t", "у":"u", "ф":"f", "х":"h", "ц":"c", "ч":"č", "ш":"š",
+  };
+
+  const latToCyr = {
+    // digraphs first (longest matches)
+    "Lj":"Љ", "lj":"љ",
+    "Nj":"Њ", "nj":"њ",
+    // single
+    "A":"А", "a":"а", "B":"Б", "b":"б", "V":"В", "v":"в", "G":"Г", "g":"г",
+    "D":"Д", "d":"д", "E":"Е", "e":"е", "Ě":"Є", "ě":"є",
+    "Ž":"Ж", "ž":"ж", "Z":"З", "z":"з", "I":"И", "i":"и",
+    "Y":"Ы", "y":"ы", "J":"Ј", "j":"ј", "K":"К", "k":"к",
+    "L":"Л", "l":"л", "M":"М", "m":"м", "N":"Н", "n":"н",
+    "O":"О", "o":"о", "P":"П", "p":"п", "R":"Р", "r":"р",
+    "S":"С", "s":"с", "T":"Т", "t":"т", "U":"У", "u":"у",
+    "F":"Ф", "f":"ф", "H":"Х", "h":"х", "C":"Ц", "c":"ц",
+    "Č":"Ч", "č":"ч", "Š":"Ш", "š":"ш"
+  };
+
+  // Prepare Latin sequences sorted by length (so digraphs match first)
+  const latSeqs = Object.keys(latToCyr).sort((a, b) => b.length - a.length);
+
+  function cyrillicToLatin(text) {
+    let res = "";
+    for (let i = 0; i < text.length; i++) {
+      // Try to match digraph "ДЖ" or single char
+      // Check two-character slice for digraph:
+      if (i + 1 < text.length) {
+        const two = text[i] + text[i+1];
+        if (cyrToLat[two] !== undefined) {
+          res += cyrToLat[two];
+          i++;
+          continue;
+        }
+      }
+      res += cyrToLat[text[i]] ?? text[i];
+    }
+    return res;
+  }
+
+  function latinToCyrillic(text) {
+    let res = "";
+    let i = 0;
+    while (i < text.length) {
+      let matched = false;
+      for (const seq of latSeqs) {
+        if (text.substr(i, seq.length) === seq) {
+          res += latToCyr[seq];
+          i += seq.length;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        res += text[i];
+        i++;
+      }
+    }
+    return res;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const cyrBox = document.getElementById("cyrillic");
+    const latBox = document.getElementById("latin");
+
+    cyrBox.addEventListener("input", () => {
+      latBox.value = cyrillicToLatin(cyrBox.value);
+    });
+
+    latBox.addEventListener("input", () => {
+      cyrBox.value = latinToCyrillic(latBox.value);
+    });
+  });
+</script>
+
+</body>
+</html>
