@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Two-Player Among Us Role Generator</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    #screen {
+      font-size: 3em;
+      line-height: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <div id="screen">Tap to start</div>
+
+  <script>
+    const screen = document.getElementById("screen");
+    let roles = [];
+    let step = 0; // 0=start, 1=player1, 2=countdown, 3=player2, 4=done
+
+    screen.onclick = handleClick;
+
+    function handleClick() {
+      if (step === 0) {
+        // Start game: decide roles
+        const impostorExists = Math.random() < 0.5;
+        if (impostorExists) {
+          roles = Math.random() < 0.5
+            ? ["IMPOSTOR", "CREWMATE"]
+            : ["CREWMATE", "IMPOSTOR"];
+        } else {
+          roles = ["CREWMATE", "CREWMATE"];
+        }
+        step = 1;
+        showPlayer1();
+      } else if (step === 1) {
+        // Player 1 seen, start blackout/countdown
+        step = 2;
+        startCountdown();
+      } else if (step === 3) {
+        // Player 2 seen, final blackout and reset
+        step = 4;
+        screen.textContent = "";
+        setTimeout(() => {
+          step = 0;
+          screen.textContent = "Tap to start";
+        }, 500); // small delay so the blackout feels like a transition
+      }
+    }
+
+    function showPlayer1() {
+      screen.textContent = "Player 1:\n" + roles[0] + "\n\nTap to continue";
+    }
+
+    function startCountdown() {
+      let countdown = Math.floor(Math.random() * 3) + 3; // 3-5 sec
+      screen.textContent = "";
+
+      function tick() {
+        if (countdown > 0) {
+          screen.textContent = countdown;
+          countdown--;
+          setTimeout(tick, 1000);
+        } else {
+          showPlayer2();
+        }
+      }
+
+      tick();
+    }
+
+    function showPlayer2() {
+      step = 3;
+      screen.textContent = "Player 2:\n" + roles[1] + "\n\nTap to finish";
+    }
+  </script>
+</body>
+</html>
