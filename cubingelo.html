@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speedcubing Elo Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+        }
+        h2 { color: #333; margin-bottom: 1.5rem; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #4CAF50; }
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .elo-score {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            display: block;
+        }
+        .rank-label {
+            font-size: 0.9rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Cubing Elo</h2>
+    <p>Enter your 3x3 Average:</p>
+    <input type="number" id="timeInput" step="0.01" placeholder="e.g. 9.50" oninput="calculateElo()">
+    
+    <div class="result-container">
+        <span class="rank-label">Current Rating</span>
+        <span id="eloOutput" class="elo-score">----</span>
+        <span id="rankName" style="color: #666; font-size: 0.9rem;">Enter a time</span>
+    </div>
+</div>
+
+<script>
+    function calculateElo() {
+        const t = parseFloat(document.getElementById('timeInput').value);
+        const output = document.getElementById('eloOutput');
+        const rankName = document.getElementById('rankName');
+
+        // Logic: 3000 is the ceiling. 
+        // We use (t - 2) to ensure the curve stays steep near the WR level.
+        if (t > 2.5) {
+            const elo = 3000 - (400 * Math.log2(t - 2));
+            const finalElo = Math.round(elo);
+            
+            output.innerText = finalElo;
+            
+            // Dynamic Rank Names
+            if (finalElo >= 2800) rankName.innerText = "World Class Elite";
+            else if (finalElo >= 2400) rankName.innerText = "Grandmaster";
+            else if (finalElo >= 2000) rankName.innerText = "Master";
+            else if (finalElo >= 1600) rankName.innerText = "Advanced";
+            else if (finalElo >= 1200) rankName.innerText = "Intermediate";
+            else if (finalElo >= 800) rankName.innerText = "Novice";
+            else rankName.innerText = "Beginner";
+
+        } else if (t <= 2.5 && t > 0) {
+            output.innerText = "3000+";
+            rankName.innerText = "God Tier / Beyond Human";
+        } else {
+            output.innerText = "----";
+            rankName.innerText = "Enter a valid time";
+        }
+    }
+</script>
+
+</body>
+</html>
