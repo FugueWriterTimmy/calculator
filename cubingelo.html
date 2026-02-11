@@ -78,7 +78,7 @@
         // Logic: 3000 is the ceiling. 
         // We use (t - 2) to ensure the curve stays steep near the WR level.
         if (t > 2.5) {
-            const elo = 3000 - (400 * Math.log2(t - 2));
+            const elo = 3000 - (400 * Math.log2(t - 3));
             const finalElo = Math.round(elo);
             
             output.innerText = finalElo;
