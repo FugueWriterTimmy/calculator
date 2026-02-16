@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live WCA Competition Board</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: white;
+        text-align: center;
+        padding: 20px;
+    }
+
+    input, select, button {
+        padding: 8px;
+        margin: 5px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: none;
+    }
+
+    button {
+        cursor: pointer;
+        background: #00bcd4;
+        color: black;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background: #0097a7;
+    }
+
+    button:disabled {
+        background: #555;
+        cursor: not-allowed;
+    }
+
+    table {
+        margin: 20px auto;
+        border-collapse: collapse;
+        width: 95%;
+        background: #222;
+    }
+
+    th, td {
+        padding: 10px;
+        border: 1px solid #444;
+    }
+
+    th {
+        background: #333;
+    }
+
+    #roundStatus {
+        font-size: 22px;
+        font-weight: bold;
+        margin-top: 15px;
+        color: #00ff88;
+    }
+</style>
+</head>
+<body>
+
+<h1>Live WCA Competition Board</h1>
+
+<div>
+    <input type="text" id="nameInput" placeholder="Competitor name">
+    <button onclick="addCompetitor()">Add Competitor</button>
+</div>
+
+<div>
+    <input type="text" id="timeInput" placeholder="Time (e.g. 9.842 or DNF)">
+    <select id="competitorSelect"></select>
+    <button id="addTimeBtn" onclick="addTime()">Add Solve</button>
+</div>
+
+<button onclick="resetBoard()">Reset Competition</button>
+
+<div id="roundStatus"></div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Solves</th>
+            <th>Current Average</th>
+        </tr>
+    </thead>
+    <tbody id="rankingTable"></tbody>
+</table>
+
+<script>
+let competitors = [];
+let roundOver = false;
+
+function addCompetitor() {
+    if (roundOver) return;
+
+    const name = document.getElementById("nameInput").value.trim();
+    if (!name) return;
+
+    competitors.push({
+        name: name,
+        times: [],
+        average: null
+    });
+
+    document.getElementById("nameInput").value = "";
+    updateSelect();
+    updateRanking();
+}
+
+function addTime() {
+    if (roundOver) return;
+
+    const timeValue = document.getElementById("timeInput").value.trim();
+    const index = document.getElementById("competitorSelect").value;
+
+    if (index === "" || timeValue === "") return;
+
+    let time;
+
+    if (timeValue.toUpperCase() === "DNF") {
+        time = Infinity;
+    } else {
+        if (!/^\d+(\.\d{1,3})?$/.test(timeValue)) return;
+        time = parseFloat(timeValue);
+    }
+
+    if (competitors[index].times.length >= 5) return;
+
+    competitors[index].times.push(time);
+    calculateLiveAverage(competitors[index]);
+
+    document.getElementById("timeInput").value = "";
+    updateRanking();
+
+    checkRoundOver();
+}
+
+function calculateLiveAverage(competitor) {
+    const times = competitor.times;
+
+    if (times.length === 0) {
+        competitor.average = null;
+        return;
+    }
+
+    if (times.length === 5) {
+        const sorted = [...times].sort((a,b) => a-b);
+        const trimmed = sorted.slice(1, 4);
+
+        if (trimmed.includes(Infinity)) {
+            competitor.average = Infinity;
+        } else {
+            competitor.average = trimmed.reduce((a,b) => a+b, 0) / 3;
+        }
+    } else {
+        if (times.includes(Infinity)) {
+            competitor.average = Infinity;
+        } else {
+            competitor.average = times.reduce((a,b) => a+b, 0) / times.length;
+        }
+    }
+}
+
+function checkRoundOver() {
+    if (competitors.length === 0) return;
+
+    const allFinished = competitors.every(c => c.times.length === 5);
+
+    if (allFinished) {
+        roundOver = true;
+        document.getElementById("roundStatus").textContent = "🏁 ROUND OVER!";
+        document.getElementById("timeInput").disabled = true;
+        document.getElementById("competitorSelect").disabled = true;
+        document.getElementById("addTimeBtn").disabled = true;
+    }
+}
+
+function updateSelect() {
+    const select = document.getElementById("competitorSelect");
+    select.innerHTML = "";
+
+    competitors.forEach((c, i) => {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = c.name;
+        select.appendChild(option);
+    });
+}
+
+function updateRanking() {
+    const table = document.getElementById("rankingTable");
+    table.innerHTML = "";
+
+    const ranked = [...competitors].sort((a,b) => {
+        if (a.average === null) return 1;
+        if (b.average === null) return -1;
+        return a.average - b.average;
+    });
+
+    ranked.forEach((c, index) => {
+        const row = document.createElement("tr");
+
+        const avgDisplay = c.average === null
+            ? "-"
+            : c.average === Infinity
+                ? "DNF"
+                : c.average.toFixed(3);
+
+        const solvesDisplay = c.times.map(t =>
+            t === Infinity ? "DNF" : t.toFixed(3)
+        ).join(", ");
+
+        row.innerHTML = `
+            <td>${c.average !== null ? index + 1 : "-"}</td>
+            <td>${c.name}</td>
+            <td>${solvesDisplay}</td>
+            <td>${avgDisplay}</td>
+        `;
+
+        table.appendChild(row);
+    });
+}
+
+function resetBoard() {
+    competitors = [];
+    roundOver = false;
+
+    document.getElementById("roundStatus").textContent = "";
+    document.getElementById("timeInput").disabled = false;
+    document.getElementById("competitorSelect").disabled = false;
+    document.getElementById("addTimeBtn").disabled = false;
+
+    updateSelect();
+    updateRanking();
+}
+</script>
+
+</body>
+</html>
