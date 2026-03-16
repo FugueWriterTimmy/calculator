@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PIE Master Engine v12</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #00ff41; padding: 20px; }
+        .workbench { max-width: 900px; margin: auto; border: 2px solid #00ff41; padding: 25px; background: #000; box-shadow: 0 0 20px #004400; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.75em; color: #008f11; text-transform: uppercase; }
+        input, select { background: #111; color: #00ff41; border: 1px solid #008f11; padding: 10px; width: 100%; box-sizing: border-box; font-size: 1em; outline: none; }
+        .manual-section { border-top: 1px dashed #004400; margin-top: 15px; padding-top: 10px; }
+        .output-area { margin-top: 30px; border-top: 2px solid #00ff41; padding-top: 25px; text-align: center; }
+        #finalForm { font-size: 2.8em; text-shadow: 0 0 12px #00ff41; min-height: 1.2em; word-wrap: break-word; }
+        .log-box { font-size: 0.8em; color: #666; margin-top: 15px; text-align: left; background: #050505; padding: 10px; border: 1px solid #1a1a1a; }
+        .auto-tag { color: #555; font-style: italic; font-size: 0.7em; }
+    </style>
+</head>
+<body>
+
+<div class="workbench">
+    <h2 style="text-align:center; letter-spacing: 2px;">PIE_MASTER_ENGINE_V12</h2>
+
+    <div class="grid">
+        <div style="grid-column: span 2;">
+            <label>1. ROOT (e-grade)</label>
+            <input type="text" id="root" placeholder="bhudh" oninput="build()">
+        </div>
+        <div>
+            <label>2. TENSE / ASPECT (AUTO)</label>
+            <select id="autoAspect" onchange="applyAutoSettings()">
+                <option value="manual">-- Manual Mode --</option>
+                <option value="pres_simple">Present (Simple)</option>
+                <option value="pres_ye">Present (yé-suffix)</option>
+                <option value="aor_sig">Aorist (Sigmatic)</option>
+                <option value="perf">Perfect (e-Redup)</option>
+                <option value="future">Future (Desiderative)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="manual-section">
+        <div class="grid">
+            <div>
+                <label>3. Reduplication <span class="auto-tag"></span></label>
+                <select id="redup" onchange="build()">
+                    <option value="none">None</option>
+                    <option value="pres">i-Redup</option>
+                    <option value="perf">e-Redup</option>
+                </select>
+            </div>
+            <div>
+                <label>4. Ablaut Grade <span class="auto-tag"></span></label>
+                <select id="grade" onchange="build()">
+                    <option value="full">Full (e)</option>
+                    <option value="zero">Zero (ø)</option>
+                    <option value="o">O-grade (o)</option>
+                    <option value="length">Lengthened (ē)</option>
+                </select>
+            </div>
+            <div>
+                <label>5. Suffix <span class="auto-tag"></span></label>
+                <select id="suffix" onchange="build()">
+                    <option value="">None</option>
+                    <option value="-yé-">-yé-</option>
+                    <option value="-sḱé-">-sḱé-</option>
+                    <option value="-s-">-s-</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="manual-section">
+        <label>Full Ending Matrix (Auto-sets field #6)</label>
+        <div class="grid">
+            <div>
+                <label class="auto-tag">Active (Primary/Secondary)</label>
+                <select onchange="setEnding(this.value)">
+                    <optgroup label="Primary (Present)">
+                        <option value="mi">1sg -mi</option><option value="si">2sg -si</option><option value="ti">3sg -ti</option>
+                        <option value="wos">1du -wos</option><option value="th2es">2du -th₂es</option><option value="toh1">3du -toh₁</option>
+                        <option value="mos">1pl -mos</option><option value="te">2pl -te</option><option value="nti">3pl -nti</option>
+                    </optgroup>
+                    <optgroup label="Secondary (Past/Aorist)">
+                        <option value="m">1sg -m</option><option value="s">2sg -s</option><option value="t">3sg -t</option>
+                        <option value="we">1du -we</option><option value="tom">2du -tom</option><option value="tah2m">3du -tām</option>
+                        <option value="me">1pl -me</option><option value="te">2pl -te</option><option value="nt">3pl -nt</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div>
+                <label class="auto-tag">Middle (Primary/Secondary)</label>
+                <select onchange="setEnding(this.value)">
+                    <optgroup label="Primary Middle">
+                        <option value="h2er">1sg -h₂er</option><option value="th2er">2sg -th₂er</option><option value="tor">3sg -tor</option>
+                        <option value="wedhh2">1du -wedʰh₂</option><option value="th2oh1">2du -th₂oh₁</option><option value="toh1">3du -toh₁</option>
+                        <option value="medhh2">1pl -medʰh₂</option><option value="dhwe">2pl -dʰwe</option><option value="ntor">3pl -ntor</option>
+                    </optgroup>
+                    <optgroup label="Secondary Middle">
+                        <option value="h2e">1sg -h₂e</option><option value="th2e">2sg -th₂e</option><option value="to">3sg -to</option>
+                        <option value="wedhh2">1du -wedʰh₂</option><option value="th2oh1">2du -th₂oh₁</option><option value="toh1">3du -toh₁</option>
+                        <option value="medhh2">1pl -medʰh₂</option><option value="dhwe">2pl -dʰwe</option><option value="nto">3pl -nto</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div>
+                <label class="auto-tag">Stative & Imperative</label>
+                <select onchange="setEnding(this.value)">
+                    <optgroup label="Stative (Perfect)">
+                        <option value="h2e">1sg -h₂e</option><option value="th2e">2sg -th₂e</option><option value="e">3sg -e</option>
+                        <option value="me">1pl -me</option><option value="te">2pl -te</option><option value="r">3pl -r</option>
+                    </optgroup>
+                    <optgroup label="Imperative">
+                        <option value="dhi">2sg -dʰi</option><option value="tu">3sg -tu</option>
+                        <option value="tom">2du -tom</option><option value="tah2m">3du -tām</option>
+                        <option value="te">2pl -te</option><option value="ntu">3pl -ntu</option>
+                        <option value="tod">Fut -tōd</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <label>6. Final Ending (Manual Input)</label>
+    <input type="text" id="ending" placeholder="-ti" oninput="build()">
+
+    <div class="output-area">
+        <div id="finalForm"></div>
+        <div class="log-box" id="log">Awaiting input...</div>
+    </div>
+</div>
+
+<script>
+    function setEnding(val) {
+        if(!val) return;
+        document.getElementById('ending').value = "-" + val;
+        build();
+    }
+
+    function applyAutoSettings() {
+        const mode = document.getElementById('autoAspect').value;
+        if (mode === "manual") return;
+        const settings = {
+            "pres_simple": { redup: "none", grade: "full", suffix: "" },
+            "pres_ye":     { redup: "none", grade: "zero", suffix: "-yé-" },
+            "aor_sig":     { redup: "none", grade: "length", suffix: "-s-" },
+            "perf":        { redup: "perf", grade: "o", suffix: "" },
+            "future":      { redup: "pres", grade: "zero", suffix: "-s-" }
+        };
+        const s = settings[mode];
+        document.getElementById('redup').value = s.redup;
+        document.getElementById('grade').value = s.grade;
+        document.getElementById('suffix').value = s.suffix;
+        build();
+    }
+
+    function applySandhi(str, log) {
+        let res = str;
+        if (res.match(/[bdg]h-s/)) { res = res.replace(/([bdg])h-s/g, "$1-zs"); log.push("Bartholomae (s): Voicing shift."); }
+        if (res.match(/[bdg]h-t/)) { res = res.replace(/([bdg])h-t/g, "$1-d$1h"); log.push("Bartholomae (t): Aspiration transfer."); }
+        if (res.includes("h2e") || res.includes("eh2")) res = res.replace(/h2e/g, "h2a").replace(/eh2/g, "ah2");
+        if (res.includes("h3e") || res.includes("eh3")) res = res.replace(/h3e/g, "h3o").replace(/eh3/g, "oh3");
+        if (res.match(/^([bdg])h.+-([bdg])h/)) { res = res.replace(/^([bdg])h/, "$1"); log.push("Grassmann: Dissimilation."); }
+        return res;
+    }
+
+    function getRedup(root, type) {
+        if (type === "none") return "";
+        let vowel = (type === "pres") ? "i" : "e";
+        let match = root.match(/^(s?[h123kǵgʷpbt dmlrnwy]h?)/);
+        let initial = match ? match[0] : root;
+        return initial + vowel + "-";
+    }
+
+    function getGrade(root, grade) {
+        if (grade === "full") return root;
+        if (grade === "o") return root.replace('e', 'o');
+        if (grade === "length") return root.replace('e', 'ē');
+        if (grade === "zero") {
+            let res = root.replace('e', '');
+            const cons = "[^aeiouēāōiuy̥]";
+            res = res.replace(new RegExp(`(${cons})y(${cons}|$)`, "g"), "$1i$2");
+            res = res.replace(new RegExp(`(${cons})w(${cons}|$)`, "g"), "$1u$2");
+            res = res.replace(/([rlnm])(?![aeiouāēīōūiuy̥])/g, "$1̥");
+            return res;
+        }
+        return root;
+    }
+
+    function build() {
+        const rootRaw = document.getElementById('root').value.trim();
+        const redupType = document.getElementById('redup').value;
+        const gradeType = document.getElementById('grade').value;
+        const suffix = document.getElementById('suffix').value;
+        const endingRaw = document.getElementById('ending').value.trim().replace('-', '');
+        if (!rootRaw) { document.getElementById('finalForm').innerText = ""; return; }
+        let log = [];
+        let redup = getRedup(rootRaw, redupType);
+        let stem = getGrade(rootRaw, gradeType);
+        let combined = redup + stem + (suffix ? suffix : "-") + endingRaw;
+        let sandhiResult = applySandhi(combined, log);
+        let final = "*" + sandhiResult.replace(/-/g, "")
+            .replace(/h1/g, "h₁").replace(/h2/g, "h₂").replace(/h3/g, "h₃")
+            .replace(/bh/g, "bʰ").replace(/dh/g, "dʰ").replace(/gh/g, "gʰ");
+        document.getElementById('finalForm').innerText = final;
+        document.getElementById('log').innerHTML = log.length ? "• " + log.join("<br>• ") : "Phonology: Stable.";
+    }
+</script>
+</body>
+</html>
