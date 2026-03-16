@@ -179,6 +179,8 @@
         if (grade === "zero") {
             let res = root.replace('e', '');
             const cons = "[^aeiouēāōiuy̥]";
+            res = res.replace(new RegExp(`^y(${cons})`, "g"), "i$1");
+            res = res.replace(new RegExp(`^w(${cons})`, "g"), "u$1");
             res = res.replace(new RegExp(`(${cons})y(${cons}|$)`, "g"), "$1i$2");
             res = res.replace(new RegExp(`(${cons})w(${cons}|$)`, "g"), "$1u$2");
             res = res.replace(/([rlnm])(?![aeiouāēīōūiuy̥])/g, "$1̥");
