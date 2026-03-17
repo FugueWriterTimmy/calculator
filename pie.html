@@ -186,10 +186,22 @@
     function getRedup(root, type) {
         if (type === "none") return "";
         let vowel = (type === "pres") ? "i" : "e";
-        let match = root.match(/^(s?[h123kǵgʷpbt dmlrnwy]h?)/);
+    
+        // 1. THE "SKIP THE S" RULE: If starts with 's' + consonant, grab the second char
+        // Example: steh2 -> t + i -> ti-
+        let sCluster = root.match(/^s([h123kǵgʷpbt dmlrnwy]h?)/);
+        if (sCluster) {
+        return sCluster[1] + vowel + "-";
+        }
+
+        // 2. STANDARD RULE: Grab the first consonant unit
+        // Example: bher -> bh + e -> bhe- (Grassmann will fix this to be- later)
+        let match = root.match(/^([h123kǵgʷpbt dmlrnwy]h?)/);
         let initial = match ? match[0] : root;
+        
         return initial + vowel + "-";
     }
+
 
     function getGrade(root, grade) {
         if (grade === "full") return root;
