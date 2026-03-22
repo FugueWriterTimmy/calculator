@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Latin Noun Declinator</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 800px; margin: auto; background-color: #f0f2f5; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .input-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        label { font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; display: block; color: #555; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccd; border-radius: 8px; box-sizing: border-box; }
+        button { background: #3498db; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        th { background: #f8f9fa; color: #666; font-size: 0.75rem; text-transform: uppercase; width: 20%; }
+        .res-header { background: #2c3e50; color: white; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="text-align: center; color: #2c3e50;">Latin Noun Declinator</h2>
+    
+    <div class="input-group">
+        <div>
+            <label>Noun Stem (e.g., "puell")</label>
+            <input type="text" id="stem" placeholder="Stem...">
+        </div>
+        <div>
+            <label>Declension</label>
+            <select id="declension">
+                <option value="1">1st (-ae)</option>
+                <option value="2">2nd (-i)</option>
+                <option value="3">3rd (-is)</option>
+                <option value="4">4th (-us)</option>
+                <option value="5">5th (-ei)</option>
+            </select>
+        </div>
+        <div>
+            <label>Gender</label>
+            <select id="gender">
+                <option value="mf">Masculine / Feminine</option>
+                <option value="n">Neuter</option>
+            </select>
+        </div>
+    </div>
+
+    <button onclick="decline()">Decline Noun</button>
+
+    <div id="output"></div>
+</div>
+
+<script>
+    const endings = {
+        1: { mf: { s: ["a", "ae", "ae", "am", "a", "a"], p: ["ae", "arum", "is", "as", "is", "ae"] } },
+        2: { 
+            mf: { s: ["us/er", "i", "o", "um", "o", "e/er"], p: ["i", "orum", "is", "os", "is", "i"] },
+            n: { s: ["um", "i", "o", "um", "o", "um"], p: ["a", "orum", "is", "a", "is", "a"] }
+        },
+        3: { 
+            mf: { s: ["*", "is", "i", "em", "e", "*"], p: ["es", "um", "ibus", "es", "ibus", "es"] },
+            n: { s: ["*", "is", "i", "*", "e", "*"], p: ["a", "um", "ibus", "a", "ibus", "a"] }
+        },
+        4: { 
+            mf: { s: ["us", "us", "ui", "um", "u", "us"], p: ["us", "uum", "ibus", "us", "ibus", "us"] },
+            n: { s: ["u", "us", "u", "u", "u", "u"], p: ["ua", "uum", "ibus", "ua", "ibus", "ua"] }
+        },
+        5: { mf: { s: ["es", "ei", "ei", "em", "e", "es"], p: ["es", "erum", "ebus", "es", "ebus", "es"] } }
+    };
+
+    const cases = ["Nominative", "Genitive", "Dative", "Accusative", "Ablative", "Vocative"];
+
+    function decline() {
+        const stem = document.getElementById('stem').value.trim();
+        const decl = document.getElementById('declension').value;
+        const gen = document.getElementById('gender').value;
+        const out = document.getElementById('output');
+
+        if (!stem) return alert("Please enter a stem.");
+
+        // Adjust for cases where Masculine/Feminine share endings (most declensions)
+        let data = (endings[decl][gen]) ? endings[decl][gen] : endings[decl]["mf"];
+
+        let html = `<table>
+            <tr><th colspan="3" class="res-header">${decl}${getOrdinal(decl)} Declension Forms</th></tr>
+            <tr><th>Case</th><th>Singular</th><th>Plural</th></tr>`;
+
+        for (let i = 0; i < 6; i++) {
+            html += `<tr>
+                <th>${cases[i]}</th>
+                <td>${stem}${data.s[i]}</td>
+                <td>${stem}${data.p[i]}</td>
+            </tr>`;
+        }
+        html += "</table>";
+        out.innerHTML = html;
+    }
+
+    function getOrdinal(n) {
+        return ["", "st", "nd", "rd", "th", "th"][n];
+    }
+</script>
+
+</body>
+</html>
