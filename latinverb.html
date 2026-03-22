@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Latin Verb Conjugator</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 1200px; margin: auto; background-color: #f0f2f5; color: #333; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        label { font-weight: 600; display: block; margin-bottom: 5px; font-size: 0.85rem; color: #555; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        button { background-color: #2c3e50; color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold; transition: 0.2s; }
+        button:hover { background-color: #34495e; }
+        .mood-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+        .section-title { background: #2c3e50; color: white; padding: 12px; margin: 25px 0 10px 0; border-radius: 6px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; grid-column: span 2; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #fff; table-layout: fixed; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: left; font-size: 0.9rem; }
+        th { background-color: #f8f9fa; color: #7f8c8d; width: 15%; font-size: 0.7rem; }
+        h4 { margin: 15px 0 5px 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        @media (max-width: 900px) { .mood-container { grid-template-columns: 1fr; } .section-title { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="margin-top:0; text-align:center;">Latin Verb Conjugator</h2>
+    <div class="grid">
+        <div><label>Present Stem (am)</label><input type="text" id="presS" value="am"></div>
+        <div><label>Perfect Stem (amav)</label><input type="text" id="perfS" value="amav"></div>
+        <div><label>Supine Stem (amat)</label><input type="text" id="partS" value="amat"></div>
+        <div>
+            <label>Conjugation</label>
+            <select id="conj">
+                <option value="1">1st (-āre)</option>
+                <option value="2">2nd (-ēre)</option>
+                <option value="3">3rd (-ere)</option>
+                <option value="3io">3rd -io</option>
+                <option value="4">4th (-īre)</option>
+            </select>
+        </div>
+    </div>
+    <button onclick="conjugate()">Generate All Forms</button>
+    <div id="output"></div>
+</div>
+
+<script>
+const data = {
+    1: { presA: ["o","as","at","amus","atis","ant"], presP: ["or","aris","atur","amur","amini","antur"], impfA: ["abam","abas","abat","abamus","abatis","abant"], impfP: ["abar","abaris","abatur","abamur","abamini","abantur"], futA: ["abo","abis","abit","abimus","abitis","abunt"], futP: ["abor","aberis","abitur","abimur","abimini","abuntur"], subjV: "e", inf: "are", impA: ["a","ate"], impP: ["are","amini"] },
+    2: { presA: ["eo","es","et","emus","etis","ent"], presP: ["eor","eris","etur","emur","emini","entur"], impfA: ["ebam","ebas","ebat","ebamus","ebatis","ebant"], impfP: ["ebar","ebaris","ebatur","ebamur","ebamini","ebantur"], futA: ["ebo","ebis","ebit","ebimus","ebitis","ebunt"], futP: ["ebor","eberis","ebitur","ebimur","ebimini","ebuntur"], subjV: "ea", inf: "ere", impA: ["e","ete"], impP: ["ere","emini"] },
+    3: { presA: ["o","is","it","imus","itis","unt"], presP: ["or","aris","itur","imur","imini","untur"], impfA: ["ebam","ebas","ebat","ebamus","ebatis","ebant"], impfP: ["ebar","ebaris","ebatur","ebamur","ebamini","ebantur"], futA: ["am","es","et","emus","etis","ent"], futP: ["ar","eris","etur","emur","emini","entur"], subjV: "a", inf: "ere", impA: ["e","ite"], impP: ["ere","imini"] },
+    "3io": { presA: ["io","is","it","imus","itis","iunt"], presP: ["ior","eris","itur","imur","imini","iuntur"], impfA: ["iebam","iebas","iebat","iebamus","iebatis","iebant"], impfP: ["iebar","iebaris","iebatur","iebamur","iebamini","iebantur"], futA: ["iam","ies","iet","iemus","ietis","ient"], futP: ["iar","ieris","ietur","iemur","iemini","ientur"], subjV: "ia", inf: "ere", impA: ["e","ite"], impP: ["ere","imini"] },
+    4: { presA: ["io","is","it","imus","itis","iunt"], presP: ["ior","iris","itur","imur","imini","iuntur"], impfA: ["iebam","iebas","iebat","iebamus","iebatis","iebant"], impfP: ["iebar","iebaris","iebatur","iebamur","iebamini","iebantur"], futA: ["iam","ies","iet","iemus","ietis","ient"], futP: ["iar","ieris","ietur","iemur","iemini","ientur"], subjV: "ia", inf: "ire", impA: ["i","ite"], impP: ["ire","imini"] }
+};
+
+function build(stem, vowel, endings) {
+    return endings.map(e => (stem + vowel + e).replace("om", "o").replace("am/o", "am").replace("em/o", "em"));
+}
+
+function getPerfPass(stem, copulas) {
+    return copulas.map((v, i) => i < 3 ? `${stem}us/a/um ${v}` : `${stem}i/ae/a ${v}`);
+}
+
+function renderTable(title, active, passive) {
+    let html = `<h4>${title}</h4><table><tr><th>Pers.</th><th>Active</th><th>Passive</th></tr>`;
+    const labels = ["1s", "2s", "3s", "1p", "2p", "3p"];
+    for (let i = 0; i < 6; i++) html += `<tr><th>${labels[i]}</th><td>${active[i]}</td><td>${passive[i]}</td></tr>`;
+    return html + `</table>`;
+}
+
+function conjugate() {
+    const pS = document.getElementById('presS').value.trim();
+    const fS = document.getElementById('perfS').value.trim();
+    const sS = document.getElementById('partS').value.trim();
+    const c = document.getElementById('conj').value;
+    const info = data[c];
+    const actE = ["m","s","t","mus","tis","nt"];
+    const pasE = ["r","ris","tur","mur","mini","ntur"];
+
+    if (!pS || !fS || !sS) return alert("Fill all stems!");
+
+    let html = `<div class="mood-container">`;
+    
+    // INDICATIVE
+    html += `<div><div class="section-title">Indicative Mood</div>`;
+    html += renderTable("Present", info.presA.map(e => pS+e), info.presP.map(e => pS+e));
+    html += renderTable("Imperfect", info.impfA.map(e => pS+e), info.impfP.map(e => pS+e));
+    html += renderTable("Future", info.futA.map(e => pS+e), info.futP.map(e => pS+e));
+    html += renderTable("Perfect", ["i","isti","it","imus","istis","erunt"].map(e => fS+e), getPerfPass(sS, ["sum","es","est","sumus","estis","sunt"]));
+    html += renderTable("Pluperfect", ["eram","eras","erat","eramus","eratis","erant"].map(e => fS+e), getPerfPass(sS, ["eram","eras","erat","eramus","eratis","erant"]));
+    html += renderTable("Future Perf.", ["ero","eris","erit","erimus","eritis","erint"].map(e => fS+e), getPerfPass(sS, ["ero","eris","erit","erimus","eritis","erint"]));
+    html += `</div>`;
+
+    // SUBJUNCTIVE
+    html += `<div><div class="section-title">Subjunctive Mood</div>`;
+    html += renderTable("Present Subj.", build(pS, info.subjV, ["m","s","t","mus","tis","nt"]), build(pS, info.subjV, ["r","ris","tur","mur","mini","ntur"]));
+    const inf = pS + info.inf;
+    html += renderTable("Imperfect Subj.", actE.map(e => inf+e), pasE.map(e => inf+e));
+    html += renderTable("Perfect Subj.", ["erim","eris","erit","erimus","eritis","erint"].map(e => fS+e), getPerfPass(sS, ["sim","sis","sit","simus","sitis","sint"]));
+    html += renderTable("Pluperfect Subj.", ["issem","isses","isset","issemus","issetis","issent"].map(e => fS+e), getPerfPass(sS, ["essem","esses","esset","essemus","essetis","essent"]));
+    
+    // IMPERATIVE
+    html += `<div class="section-title" style="grid-column: span 1; margin-top:10px;">Imperative (Present)</div>`;
+    html += `<table><tr><th>Num.</th><th>Active</th><th>Passive</th></tr>
+        <tr><th>Sing.</th><td>${pS + info.impA[0]}</td><td>${pS + info.impP[0]}</td></tr>
+        <tr><th>Plur.</th><td>${pS + info.impA[1]}</td><td>${pS + info.impP[1]}</td></tr></table></div></div>`;
+
+    document.getElementById('output').innerHTML = html;
+}
+</script>
+</body>
+</html>
