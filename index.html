@@ -5,56 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timmy's Calculators</title>
     <style>
+        :root {
+            --bg: #f8fafc;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --text: #1e293b;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 2rem;
         }
 
         h1 {
-            margin-bottom: 40px;
-            color: #333;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 2rem;
         }
 
-        .button {
-            background-color: #28ed49;
-            color: white;
-            padding: 15px 30px;
-            margin: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            color: var(--text);
             text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        .button:hover {
-            background-color: #45a049;
-            transform: scale(1.05);
+        .btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to my Calculator Page</h1>
-    <a href="kepler.html" class="button">Orbital Period Calculator</a>
-    <a href="height.html" class="button">Height Converter</a>
-    <a href="futureheight.html" class="button">Future Height Predictor (non-medical)</a>
-    <a href="life.html" class="button">Life Generator</a>
-    <a href="vertis.html" class="button">Vertis Unit System Converter</a>   
-    <a href="hectoc.html" class="button">Hectoc Solver</a> 
-    <a href="roundrobin.html" class="button">Round-Robin Tournament Generator</a> 
-    <a href="blindfoldchess.html" class="button">Blindfold Chess Trainer</a>
-    <a href="amongus.html" class="button">Two-Player Among Us Role Generator</a>
-    <a href="cubingelo.html" class="button">Cubing Elo Calculator</a>
-    <a href="cubingcomp.html" class="button">Cubing Competition Live Ranking Board</a>
-    <a href="pie.html" class="button">Proto-Indo-European Verb Conjugator (WIP)</a>
-    <a href="latinnoun.html" class="button">Latin Noun Declinator</a>
-    <a href="latinverb.html" class="button">Latin Verb Conjugator</a>
+
+    <h1>Timmy's Calculators</h1>
+
+    <nav class="grid">
+        <a href="kepler.html" class="btn">Orbital Period</a>
+        <a href="height.html" class="btn">Height Converter</a>
+        <a href="futureheight.html" class="btn">Future Height Predictor</a>
+        <a href="life.html" class="btn">Life Generator</a>
+        <a href="vertis.html" class="btn">Vertis Unit System</a>   
+        <a href="hectoc.html" class="btn">Hectoc Solver</a> 
+        <a href="roundrobin.html" class="btn">Round-Robin Generator</a> 
+        <a href="blindfoldchess.html" class="btn">Blindfold Chess</a>
+        <a href="amongus.html" class="btn">Among Us Roles</a>
+        <a href="cubingelo.html" class="btn">Cubing Elo</a>
+        <a href="cubingcomp.html" class="btn">Cubing Live Board</a>
+        <a href="pie.html" class="btn">PIE Conjugator (WIP)</a>
+        <a href="latinnoun.html" class="btn">Latin Noun Declinator</a>
+        <a href="latinverb.html" class="btn">Latin Verb Conjugator</a>
+        <a href="lci.html" class="btn">Grammatical Complexity Calculator</a>
+    </nav>
+
 </body>
 </html>
