@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absolute Linguistic Complexity Calculator v5.1</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--primary); padding: 20px; line-height: 1.4; }
+        .container { max-width: 950px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { font-weight: 900; margin-bottom: 5px; text-align: center; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 40px; font-size: 0.9rem; }
+        section { margin-bottom: 40px; border-top: 2px solid #e2e8f0; padding-top: 25px; }
+        h3 { font-size: 0.85rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .q-box { margin-bottom: 25px; }
+        label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+        .hint { font-size: 0.8rem; color: #64748b; margin-bottom: 10px; display: block; height: 2.4em; }
+        .rank-stack { display: flex; flex-direction: column; gap: 5px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .rank-opt { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; padding: 4px; border-radius: 4px; }
+        .rank-opt:hover { background: #eff6ff; }
+        input[type="number"], select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; }
+        button#calc-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 20px; font-weight: 800; border-radius: 10px; cursor: pointer; font-size: 1.1rem; margin-top: 20px; transition: 0.2s; }
+        button#calc-btn:hover { background: var(--accent); }
+        #results { display: none; margin-top: 40px; padding: 30px; border-radius: 16px; text-align: center; border: 4px solid var(--accent); background: #f0f7ff; }
+        .score-box { font-size: 5rem; font-weight: 900; color: var(--accent); margin: 5px 0; font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Linguistic Complexity Index (Full)</h1>
+    <p class="subtitle">Restore Objective Absolute Complexity: Measuring structural units, rules, and irregularities.</p>
+
+    <div class="grid-2">
+        <div class="col">
+            <section>
+                <h3>I. Phonology & Tone</h3>
+                <div class="q-box">
+                    <label>Phoneme Count</label>
+                    <span class="hint">Total unique consonants + vowels.</span>
+                    <input type="number" id="phonemes">
+                </div>
+                <div class="q-box">
+                    <label>Syllable Density (1-5)</label>
+                    <span class="hint">How many consonants can cluster together?</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="syll" value="1"> 1: CV only (Basic)</label>
+                        <label class="rank-opt"><input type="radio" name="syll" value="2"> 2: CVC (Standard)</label>
+                        <label class="rank-opt"><input type="radio" name="syll" value="3" checked> 3: CCVC (Clusters)</label>
+                        <label class="rank-opt"><input type="radio" name="syll" value="4"> 4: CCCVCC (Heavy clusters)</label>
+                        <label class="rank-opt"><input type="radio" name="syll" value="5"> 5: Massive (e.g. CCCCVCCCC)</label>
+                    </div>
+                </div>
+                <div class="q-box">
+                    <label>Tone System (1-5)</label>
+                    <span class="hint">Complexity of pitch distinctions.</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="tone" value="1" checked> 1: Non-tonal</label>
+                        <label class="rank-opt"><input type="radio" name="tone" value="2"> 2: Pitch-accent</label>
+                        <label class="rank-opt"><input type="radio" name="tone" value="3"> 3: Simple tone (2-3 levels)</label>
+                        <label class="rank-opt"><input type="radio" name="tone" value="4"> 4: Complex (4+ tones)</label>
+                        <label class="rank-opt"><input type="radio" name="tone" value="5"> 5: Tone Sandhi (Tones change tones)</label>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3>II. Noun & Pronoun Elaboration</h3>
+                <div class="q-box">
+                    <label>Noun Cases</label>
+                    <input type="number" id="cases">
+                </div>
+                <div class="q-box">
+                    <label>Noun Classes / Genders</label>
+                    <input type="number" id="genders">
+                </div>
+                <div class="q-box">
+                    <label>Grammatical Number Hierarchy (1-5)</label>
+                    <span class="hint">How many quantity categories are mandatory?</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="num_h" value="0" checked> 1: Nonexistent (No plural marking)</label>
+                        <label class="rank-opt"><input type="radio" name="num_h" value="3"> 2: Singular / Plural</label>
+                        <label class="rank-opt"><input type="radio" name="num_h" value="7"> 3: Singular / Dual / Plural</label>
+                        <label class="rank-opt"><input type="radio" name="num_h" value="11"> 4: Trial or Paucal (Small groups)</label>
+                        <label class="rank-opt"><input type="radio" name="num_h" value="15"> 5: Complex (e.g. Inclusive/Exclusive duals)</label>
+                    </div>
+                </div>
+                <div class="q-box">
+                    <label>Person Distinctions (1-5)</label>
+                    <span class="hint">Mandatory pronoun categories.</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="person" value="1" checked> 1: I, You, He/She (Basic)</label>
+                        <label class="rank-opt"><input type="radio" name="person" value="2"> 2: Inclusive/Exclusive "We"</label>
+                        <label class="rank-opt"><input type="radio" name="person" value="3"> 3: Clusivity + Honorific levels</label>
+                        <label class="rank-opt"><input type="radio" name="person" value="4"> 4: Gender-split in all persons</label>
+                        <label class="rank-opt"><input type="radio" name="person" value="5"> 5: Direct-Inverse/Animacy splits</label>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col">
+            <section>
+                <h3>III. Verbal & Morphological Depth</h3>
+                <div class="q-box">
+                    <label>TAM (Tense/Aspect/Mood)</label>
+                    <span class="hint">Number of distinct required verb categories.</span>
+                    <input type="number" id="tam">
+                </div>
+                <div class="q-box">
+                    <label>Fusion Intensity (1-5)</label>
+                    <span class="hint">How blended are the morphemes?</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="fus" value="1"> 1: Isolating (1:1 mapping)</label>
+                        <label class="rank-opt"><input type="radio" name="fus" value="2"> 2: Basic Agglutination</label>
+                        <label class="rank-opt"><input type="radio" name="fus" value="3" checked> 3: Deep Agglutination</label>
+                        <label class="rank-opt"><input type="radio" name="fus" value="4"> 4: Fusional (Blended meanings)</label>
+                        <label class="rank-opt"><input type="radio" name="fus" value="5"> 5: Extreme Fusion/Inflection</label>
+                    </div>
+                </div>
+                <div class="q-box">
+                    <label>Agreement Scope (1-5)</label>
+                    <span class="hint">What must the verb track?</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="agr" value="1"> 1: No agreement</label>
+                        <label class="rank-opt"><input type="radio" name="agr" value="2"> 2: Subject only</label>
+                        <label class="rank-opt"><input type="radio" name="agr" value="3" checked> 3: Subject + Object</label>
+                        <label class="rank-opt"><input type="radio" name="agr" value="4"> 4: Polypersonal (3+ args)</label>
+                        <label class="rank-opt"><input type="radio" name="agr" value="5"> 5: Noun Class Agreement across sentence</label>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3>IV. Syntax & Irregularity</h3>
+                <div class="q-box">
+                    <label>Alignment Type (1-5)</label>
+                    <span class="hint">Grammatical logic (Nom-Acc vs Erg-Abs).</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="align" value="1" checked> 1: Consistent Nom-Acc</label>
+                        <label class="rank-opt"><input type="radio" name="align" value="2"> 2: Ergative features</label>
+                        <label class="rank-opt"><input type="radio" name="align" value="3"> 3: Fully Ergative-Absolutive</label>
+                        <label class="rank-opt"><input type="radio" name="align" value="4"> 4: Split-Ergativity</label>
+                        <label class="rank-opt"><input type="radio" name="align" value="5"> 5: Tripartite / Active-Stative</label>
+                    </div>
+                </div>
+                <div class="q-box">
+                    <label>Irregularity Density (1-5)</label>
+                    <span class="hint">How many exceptions defy the rules?</span>
+                    <div class="rank-stack">
+                        <label class="rank-opt"><input type="radio" name="irr" value="1"> 1: Perfectly Regular</label>
+                        <label class="rank-opt"><input type="radio" name="irr" value="2"> 2: Few high-freq exceptions</label>
+                        <label class="rank-opt"><input type="radio" name="irr" value="3" checked> 3: Moderate (dozens)</label>
+                        <label class="rank-opt"><input type="radio" name="irr" value="4"> 4: Large lists of exceptions</label>
+                        <label class="rank-opt"><input type="radio" name="irr" value="5"> 5: Systemic Suppletion (Roots change)</label>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <button id="calc-btn" onclick="calcFull()">EVALUATE ABSOLUTE COMPLEXITY</button>
+
+    <div id="results">
+        <p>Objective Complexity Score</p>
+        <div class="score-box" id="final_score">0</div>
+        <h2 id="final_type">Type</h2>
+        <p id="final_desc"></p>
+    </div>
+</div>
+
+<script>
+    function get(n) { return parseInt(document.querySelector(`input[name="${n}"]:checked`)?.value || 0); }
+    
+    function animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const easeOutPower4 = 1 - Math.pow(1 - progress, 4);
+            const current = Math.floor(easeOutPower4 * (end - start) + start);
+            obj.innerHTML = current;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    function calcFull() {
+        let s = 0;
+        
+        s += (parseInt(document.getElementById('phonemes').value) * 0.4);
+        s += (get('syll') * 6);
+        s += (get('tone') * 8);
+        s += (parseInt(document.getElementById('cases').value) * 5);
+        s += (parseInt(document.getElementById('genders').value) * 8);
+        s += get('num_h'); // Added Number Hierarchy points
+        s += (get('person') * 5);
+        s += (parseInt(document.getElementById('tam').value) * 3);
+        s += (get('fus') * 10);
+        s += (get('agr') * 12);
+        s += (get('align') * 8);
+        s += (get('irr') * 12);
+
+        const scoreFinal = Math.round(s);
+        const scoreDisplay = document.getElementById('final_score');
+        
+        document.getElementById('results').style.display = 'block';
+        animateValue(scoreDisplay, 0, scoreFinal, 2000);
+        
+        let t = "", d = "";
+        if (s < 100) { t = "Streamlined / Functional"; d = "Minimal absolute complexity. Optimized for high-speed communication with very few redundant markers."; }
+        else if (s < 210) { t = "Balanced / Moderately Complex"; d = "Standard level of elaboration. These languages have significant 'ornamental' baggage."; }
+        else if (s < 360) { t = "Highly Elaborated"; d = "Deep structural complexity. The language requires a massive rule set and hundreds of exceptions."; }
+        else { t = "Hyper-Complex / Overspecified"; d = "Extreme absolute complexity. These systems pack immense amounts of redundant information into every utterance."; }
+        
+        document.getElementById('final_type').innerText = t;
+        document.getElementById('final_desc').innerText = d;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
