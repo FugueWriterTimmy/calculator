@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Conlang Morphology Engine</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e2e2e2; padding: 20px; line-height: 1.4;}
+        .container { max-width: 1100px; margin: auto; background: #16213e; padding: 30px; border-radius: 12px; }
+        .config-panel { background: #0f3460; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #4ecca3; }
+        input { width: 100%; padding: 8px; border-radius: 4px; border: none; background: #1a1a2e; color: white; box-sizing: border-box; }
+        button { background: #4ecca3; color: #1a1a2e; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 10px; }
+        button:hover { background: #45b393; }
+        .section { margin-top: 30px; border-top: 1px solid #4ecca333; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; background: #0f3460; }
+        th, td { border: 1px solid #16213e; padding: 10px; text-align: left; }
+        th { background: #4ecca3; color: #1a1a2e; text-transform: uppercase; font-size: 0.85rem; }
+        .morph { color: #f9ed69; font-weight: bold; }
+        #translator-box { background: #1a1a2e; padding: 20px; border-radius: 8px; border: 2px solid #4ecca3; }
+        .lexicon-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 0.85rem; max-height: 300px; overflow-y: auto; background: #0f3460; padding: 10px; border-radius: 8px; }
+        .translation-output { margin-top: 15px; font-size: 1.8rem; color: #4ecca3; font-family: 'Courier New', Courier, monospace; min-height: 2rem; border-left: 4px solid #4ecca3; padding-left: 15px;}
+        h2 { color: #4ecca3; margin-top: 40px; }
+        ul { list-style: none; padding: 0; }
+        li { margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Morphology Engine & Translator</h1>
+    
+    <div class="config-panel">
+        <div>
+            <div class="input-group"><label>Consonants</label><input type="text" id="cons" value="p, t, k, m, n, s, l, r"></div>
+            <div class="input-group"><label>Vowels</label><input type="text" id="vows" value="a, e, i, o, u"></div>
+            <div style="display: flex; gap: 15px;">
+                <label><input type="checkbox" id="useDual"> Dual</label>
+                <label><input type="checkbox" id="noAmbiguity" checked> Unique</label>
+                <label><input type="checkbox" id="zeroEnding" checked> Unmarked Nom.Sg</label>
+            </div>
+        </div>
+        <div>
+            <div class="input-group"><label>Cases</label><input type="text" id="cases" value="Nominative, Accusative, Genitive, Dative"></div>
+            <div class="input-group"><label>Genders</label><input type="text" id="genders" value="Masculine, Feminine"></div>
+            <div class="input-group"><label>Tenses</label><input type="text" id="tenses" value="Present, Past, Future"></div>
+        </div>
+    </div>
+
+    <button onclick="generate()">Generate Language & Lexicon</button>
+
+    <div id="translator-box" class="section" style="display:none;">
+        <label>Translator (Separate words with spaces. Example: <b>man.nominative dog.plural.genitive eat.past.3rd.singular</b>)</label>
+        <input type="text" id="transInput" placeholder="Try: dog.plural.genitive eat.past" oninput="translateInput()">
+        <div class="translation-output" id="transOutput"></div>
+    </div>
+
+    <div id="lexicon-section" style="display:none;">
+        <h2>Lexicon</h2>
+        <div id="lexicon-display" class="lexicon-container"></div>
+    </div>
+
+    <div id="output"></div>
+</div>
+
+<script>
+    let nounMap = {}, verbMap = {}, lexicon = {};
+    const nounEnglish = ["dog","cat","man","woman","water","stone","tree","sun","moon","star","fire","river","mountain","house","book","hand","eye","heart","bird","fish","bread","city","road","child","friend","king","sword","shield","field","sky","rain","wind","gold","iron","name","voice","night","day","forest","sea","flower","seed","blood","bone","dream","spirit","time","life","death","truth"];
+    const verbEnglish = ["eat","drink","sleep","walk","run","see","hear","speak","love","kill","give","take","find","lose","make","break","build","sit","stand","fall","fly","swim","fight","know","think","want","go","come","stay","call","help","work","play","write","read","sing","dance","laugh","cry","open","close","hit","push","pull","burn","wash","fear","hope","buy","sell"];
+
+    function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+    function getVal(id) { return document.getElementById(id).value.split(',').map(s => s.trim()).filter(s => s !== ""); }
+
+    function makeWord(c, v, min=2, max=3) {
+        let word = "";
+        for(let i=0; i<Math.floor(Math.random()*(max-min+1))+min; i++) {
+            word += (i % 2 === 0) ? pick(c) + pick(v) : pick(c);
+        }
+        return word;
+    }
+
+    function generate() {
+        const c = getVal('cons'), v = getVal('vows'), cases = getVal('cases'), 
+              genders = getVal('genders'), tenses = getVal('tenses');
+        const useDual = document.getElementById('useDual').checked, 
+              unique = document.getElementById('noAmbiguity').checked,
+              zeroNom = document.getElementById('zeroEnding').checked;
+
+        const numbers = ["Singular", "Plural"];
+        if (useDual) numbers.splice(1, 0, "Dual");
+        const persons = ["1st", "2nd", "3rd"];
+
+        nounMap = {}; verbMap = {}; lexicon = { nouns: {}, verbs: {} };
+        const nounInv = new Set(), verbInv = new Set();
+
+        numbers.forEach(num => {
+            cases.forEach((cs, cIdx) => {
+                genders.forEach((gen, gIdx) => {
+                    const key = `${num}.${cs}.${gen}`.toLowerCase();
+                    if (zeroNom && num === "Singular" && cIdx === 0 && gIdx === 0) {
+                        nounMap[key] = "";
+                    } else {
+                        let m;
+                        do { m = pick([pick(c)+pick(v), pick(v)+pick(c), pick(c)+pick(v)+pick(c)]); } 
+                        while (unique && nounInv.has(m));
+                        nounInv.add(m);
+                        nounMap[key] = m;
+                    }
+                });
+            });
+        });
+
+        tenses.forEach(t => {
+            persons.forEach(p => {
+                numbers.forEach(n => {
+                    const key = `${t}.${p}.${n}`.toLowerCase();
+                    let m;
+                    do { m = pick([pick(v)+pick(c), pick(c)+pick(v)+pick(c), pick(v)+pick(c)+pick(v), pick(c)+pick(v)]); } 
+                    while (unique && verbInv.has(m));
+                    verbInv.add(m);
+                    verbMap[key] = m;
+                });
+            });
+        });
+
+        let lexHtml = "<div><h3>Nouns</h3><ul>";
+        nounEnglish.forEach(e => {
+            const stem = makeWord(c, v);
+            const gen = pick(genders);
+            lexicon.nouns[e] = { stem, gender: gen };
+            lexHtml += `<li><b>${e}</b>: ${stem} <small>(${gen})</small></li>`;
+        });
+        lexHtml += "</ul></div><div><h3>Verbs</h3><ul>";
+        verbEnglish.forEach(e => {
+            const stem = makeWord(c, v);
+            lexicon.verbs[e] = { stem };
+            lexHtml += `<li><b>${e}</b>: ${stem}</li>`;
+        });
+        lexHtml += "</ul></div>";
+
+        document.getElementById('lexicon-section').style.display = 'block';
+        document.getElementById('lexicon-display').innerHTML = lexHtml;
+        document.getElementById('translator-box').style.display = 'block';
+        
+        let html = "<h2>Noun Paradigm</h2>";
+        numbers.forEach(num => {
+            html += `<h3>${num}</h3><table><tr><th>Case</th>${genders.map(g=>`<th>${g}</th>`).join('')}</tr>`;
+            cases.forEach(cs => {
+                html += `<tr><td><strong>${cs}</strong></td>` + genders.map(g => {
+                    let m = nounMap[`${num}.${cs}.${g}`.toLowerCase()];
+                    return `<td class="morph">-${m || 'ø'}</td>`;
+                }).join('') + "</tr>";
+            });
+            html += "</table>";
+        });
+
+        html += "<h2>Verb Paradigm</h2>";
+        tenses.forEach(t => {
+            html += `<h3>${t} Tense</h3><table><tr><th>Person</th>${numbers.map(n=>`<th>${n}</th>`).join('')}</tr>`;
+            persons.forEach(p => {
+                html += `<tr><td><strong>${p}</strong></td>` + numbers.map(n => {
+                    let m = verbMap[`${t}.${p}.${n}`.toLowerCase()];
+                    return `<td class="morph">-${m}</td>`;
+                }).join('') + "</tr>";
+            });
+            html += "</table>";
+        });
+
+        document.getElementById('output').innerHTML = html;
+    }
+
+    function translateInput() {
+        const fullInput = document.getElementById('transInput').value.toLowerCase().trim();
+        if (!fullInput) { document.getElementById('transOutput').innerText = ""; return; }
+        
+        const chunks = fullInput.split(/\s+/);
+        const translatedSentence = chunks.map(chunk => {
+            const tags = chunk.split('.');
+            const root = tags[0];
+            
+            if (lexicon.nouns[root]) {
+                const l = lexicon.nouns[root];
+                const num = tags.find(t => ["singular", "plural", "dual"].includes(t)) || "singular";
+                const cs = tags.find(t => getVal('cases').map(x=>x.toLowerCase()).includes(t)) || getVal('cases')[0].toLowerCase();
+                const key = `${num}.${cs}.${l.gender.toLowerCase()}`;
+                return l.stem + (nounMap[key] || "");
+            } else if (lexicon.verbs[root]) {
+                const l = lexicon.verbs[root];
+                const t = tags.find(t => getVal('tenses').map(x=>x.toLowerCase()).includes(t)) || getVal('tenses')[0].toLowerCase();
+                const p = tags.find(t => ["1st", "2nd", "3rd"].includes(t)) || "3rd";
+                const n = tags.find(t => ["singular", "plural", "dual"].includes(t)) || "singular";
+                const key = `${t}.${p}.${n}`;
+                return l.stem + (verbMap[key] || "");
+            }
+            return "[?]";
+        });
+
+        document.getElementById('transOutput').innerText = translatedSentence.join(" ");
+    }
+</script>
+</body>
+</html>
