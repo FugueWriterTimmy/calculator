@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consistency Calculator</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f9; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        textarea { width: 100%; height: 200px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; padding: 8px; box-sizing: border-box; }
+        .result { font-size: 1.5rem; font-weight: bold; color: #2c3e50; margin-top: 15px; text-align: center; }
+        label { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Consistency Calculator</h2>
+    <label for="times">Paste numbers (one per line):</label>
+    <textarea id="times" placeholder="10.50&#10;11.20&#10;9.80" oninput="calculate()"></textarea>
+    <div class="result" id="output">Consistency: --%</div>
+</div>
+
+<script>
+    function calculate() {
+        const input = document.getElementById('times').value;
+        const output = document.getElementById('output');
+        
+        const times = input.split('\n')
+                           .map(t => t.trim())
+                           .filter(t => t !== '' && !isNaN(t))
+                           .map(Number);
+
+        if (times.length < 2) {
+            output.innerText = "Consistency: --%";
+            return;
+        }
+
+        const n = times.length;
+        const mean = times.reduce((a, b) => a + b) / n;
+        
+        const variance = times.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+        const stdDev = Math.sqrt(variance);
+
+        const cv = (stdDev / mean) * 100;
+        
+        let consistency = 100 - cv;
+        
+        consistency = Math.max(0, consistency.toFixed(2));
+
+        output.innerText = `Consistency: ${consistency}%`;
+    }
+</script>
+
+</body>
+</html>
