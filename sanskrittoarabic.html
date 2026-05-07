@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sanskrit to Arabic Converter</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        .box { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 100px; font-size: 1.2rem; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; }
+        #output { 
+            direction: rtl; 
+            font-family: "Noto Naskh Arabic", "Courier New", serif; 
+            font-size: 2.5rem; 
+            padding: 20px; 
+            margin-top: 20px; 
+            background: #fff; 
+            border: 2px solid #333;
+            min-height: 50px;
+            line-height: 1.8;
+            white-space: pre-wrap; /* Keeps newlines and spaces visible */
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h3>HK to Arabic</h3>
+    <textarea id="input" placeholder="saMskRtam yoga" oninput="convert()"></textarea>
+    <div id="output"></div>
+</div>
+
+<script>
+const MAP = {
+    "ai": "ايْ", "au": "اوْ", "kh": "كھ", "gh": "گھ", "ch": "چھ", "jh": "جھ", 
+    "Th": "ٹھ", "Dh": "ڈھ", "th": "تھ", "dh": "دھ", "ph": "پھ", "bh": "بھ",
+    "a_init": "أَ", "A_init": "آ", "i_init": "إِ", "I_init": "إِي", "u_init": "أُ", "U_init": "أُو",
+    "e_init": "أٜي", "o_init": "أۆ",
+    "a": "\u064e", "A": "ا", "i": "\u0650", "I": "ي", "u": "\u064f", "U": "و",
+    "e": "\u065Cي", "o": "ۆ", "R": "ر", "L": "ل",
+    "k": "ك", "g": "گ", "G": "ڠ", "c": "چ", "j": "ج", "J": "ڃ",
+    "T": "ٹ", "D": "ڈ", "N": "ڻ", "t": "ت", "d": "د", "n": "ن",
+    "p": "پ", "b": "ب", "m": "م", "y": "ي", "r": "ر", "l": "ل", 
+    "v": "و", "z": "ش", "S": "ص", "s": "س", "h": "ہ", "M": "ں", "H": "ح"
+};
+
+function convert() {
+    const text = document.getElementById("input").value;
+    let result = "";
+    let i = 0;
+    let isNewWord = true;
+
+    while (i < text.length) {
+        let match = "";
+        let char = text[i];
+
+        // 1. Handle spaces and line breaks immediately
+        if (char === " " || char === "\n" || char === "\t") {
+            result += char;
+            isNewWord = true;
+            i++;
+            continue;
+        }
+
+        // 2. Look for 2-character HK (aspirates/diphthongs)
+        if (i + 1 < text.length && MAP[text.substring(i, i + 2)]) {
+            match = text.substring(i, i + 2);
+            i += 2;
+        } 
+        // 3. Look for 1-character HK
+        else if (MAP[char]) {
+            match = char;
+            i++;
+        } else {
+            // Unknown character, just pass it through
+            result += char;
+            i++;
+            continue;
+        }
+
+        // 4. Apply Word-Initial or Medial logic
+        if (isNewWord && MAP[match + "_init"]) {
+            result += MAP[match + "_init"];
+        } else {
+            result += MAP[match];
+        }
+        isNewWord = false;
+
+        // 5. Automatic Sukun (Virama) for consonants
+        const next = text[i];
+        const isVowel = (c) => "aAiIuUeoRL".includes(c);
+        const isModifier = (m) => ["M", "H", "ai", "au"].includes(m);
+
+        if (!isVowel(match) && !isModifier(match)) {
+            // If next char is NOT a vowel and NOT a space/end, add sukun
+            if (!isVowel(next) && next !== undefined && next !== " " && next !== "\n") {
+                result += "\u0652";
+            } else if (next === " " || next === "\n" || next === undefined) {
+                result += "\u0652"; // End of word sukun
+            }
+        }
+    }
+    document.getElementById("output").innerText = result;
+}
+</script>
+</body>
+</html>
