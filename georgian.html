@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <title>Universal Georgian Verb Engine v6.0</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121214; color: #e1e1e6; padding: 30px; margin: 0; }
+        .app { max-width: 1100px; margin: auto; background: #202024; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid #29292e; }
+        h1 { text-align: center; color: #00adb5; margin-bottom: 30px; font-weight: 300; letter-spacing: 2px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        label { display: block; margin-top: 15px; font-weight: 600; color: #a8a8b3; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; }
+        select, input { width: 100%; padding: 12px; margin-top: 6px; border: 2px solid #29292e; border-radius: 6px; background: #121214; color: #fff; box-sizing: border-box; font-size: 14px; transition: border-color 0.2s; }
+        select:focus, input:focus { border-color: #00adb5; outline: none; }
+        .output-container { margin-top: 40px; text-align: center; padding: 40px; background: #121214; border-radius: 8px; border: 2px solid #00adb5; position: relative; }
+        #word { font-size: 56px; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(0,173,181,0.3); min-height: 75px; }
+        .btn-row { display: flex; gap: 15px; margin-top: 30px; }
+        button { flex: 2; padding: 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: background 0.2s, transform 0.1s; }
+        .btn-calc { background: #00adb5; color: #121214; }
+        .btn-calc:hover { background: #008c95; }
+        .btn-util { background: #29292e; color: #e1e1e6; flex: 1; border: 1px solid #3e3e4a; font-size: 1em; }
+        .btn-util:hover { background: #3e3e4a; color: #fff; }
+        #btn-copy { background: #1a2f30; color: #00adb5; border: 1px solid #00adb5; }
+        #btn-copy:hover { background: #00adb5; color: #121214; }
+        #breakdown { font-family: 'Courier New', monospace; color: #737380; margin-top: 20px; font-size: 16px; letter-spacing: 3px; }
+        #meta-info { font-size: 13px; color: #00adb5; margin-top: 15px; font-family: monospace; }
+        optgroup { background: #202024; color: #00adb5; }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <h1>GEORGIAN VERB ENGINE v6.0</h1>
+    
+    <form id="conjugatorForm">
+        <div class="grid">
+            <!-- LEXICON -->
+            <div>
+                <label>Verb Root</label>
+                <input type="text" id="root" value="" placeholder="e.g. წერ, ხატ, ცეკვ, უყვარ">
+                
+                <label>Thematic Suffix</label>
+                <select id="ts">
+                    <option value="">None (e.g. წერ-ს)</option>
+                    <option value="ებ">eb (აშენ-ებ-ს)</option>
+                    <option value="ავ">av (ხატ-ავ-ს)</option>
+                    <option value="ი">i (ჭრ-ი-ს)</option>
+                    <option value="ობ">ob (თამაშ-ობ-ს)</option>
+                    <option value="ამ">am (აბამ-ს)</option>
+                </select>
+
+                <label>Verb Class</label>
+                <select id="vClass">
+                    <option value="1">Class 1 (Transitive)</option>
+                    <option value="2">Class 2 (Intransitive / Passive)</option>
+                    <option value="3">Class 3 (Medial / Activity)</option>
+                    <option value="4">Class 4 (Indirect / Stative / Emotion)</option>
+                </select>
+            </div>
+
+            <!-- SCREEVES -->
+            <div>
+                <label>Screeve Configuration</label>
+                <select id="screeve" size="11" style="height: 265px;">
+                    <optgroup label="Series I (Present Sub-Series)">
+                        <option value="pres" selected>Present Indicative</option>
+                        <option value="impf">Imperfect</option>
+                        <option value="pres_sub">Present Subjunctive</option>
+                    </optgroup>
+                    <optgroup label="Series I (Future Sub-Series)">
+                        <option value="fut">Future Indicative</option>
+                        <option value="cond">Conditional</option>
+                        <option value="fut_sub">Future Subjunctive</option>
+                    </optgroup>
+                    <optgroup label="Series II (Aorist Set)">
+                        <option value="aor">Aorist (Simple Past)</option>
+                        <option value="opt">Optative</option>
+                    </optgroup>
+                    <optgroup label="Series III (Perfect Set)">
+                        <option value="perf">Present Perfect</option>
+                        <option value="plup">Pluperfect</option>
+                        <option value="perf_sub">Perfect Subjunctive</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- ARGUMENTS -->
+            <div>
+                <label>Subject Actant</label>
+                <select id="subj">
+                    <option value="1s">Me (1s)</option><option value="1p">We (1p)</option>
+                    <option value="2s">You (2s)</option><option value="2p">You Pl (2p)</option>
+                    <option value="3s" selected>S/He/It (3s)</option><option value="3p">They (3p)</option>
+                </select>
+
+                <label>Direct Object</label>
+                <select id="do">
+                    <option value="none">None / 3rd Person</option>
+                    <option value="1s">Me (1s)</option><option value="1p">Us (1p)</option>
+                    <option value="2s">You (2s)</option><option value="2p">You Pl (2p)</option>
+                </select>
+
+                <label>Preverb Token</label>
+                <input type="text" id="pv" value="" placeholder="e.g. და, გა, მო">
+            </div>
+
+            <!-- MORPHOLOGICAL SLOTS -->
+            <div>
+                <label>Indirect Object</label>
+                <select id="io">
+                    <option value="none">None</option>
+                    <option value="1s">To Me (1s)</option><option value="1p">To Us (1p)</option>
+                    <option value="2s">To You (2s)</option><option value="2p">To You Pl (2p)</option>
+                    <option value="3">To Him/Her/Them (3rd)</option>
+                </select>
+
+                <label>Version Vowel Slot</label>
+                <select id="versioner">
+                    <option value="">None (Ø)</option>
+                    <option value="ა">a- (Objective / Active)</option>
+                    <option value="ი">i- (Subjective / Absolute Passive)</option>
+                    <option value="უ">u- (Objective / Indirect)</option>
+                    <option value="ე">e- (Relative Passive)</option>
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <div class="btn-row">
+        <button type="button" class="btn-calc" onclick="executeConjugationEngine()">Compute Morphotactics</button>
+        <button type="button" class="btn-util" id="btn-copy" onclick="copyResultToClipboard()">Copy Word</button>
+        <button type="button" class="btn-util" onclick="resetEngineFields()">Reset Fields</button>
+    </div>
+
+    <div class="output-container">
+        <div id="word">-</div>
+        <div id="breakdown">PV - PREF - VER - ROOT - TS - FORMANT - SUFFIX</div>
+        <div id="meta-info">Engine Neutral</div>
+    </div>
+</div>
+
+<script>
+function executeConjugationEngine() {
+    const root = document.getElementById('root').value.trim();
+    const vClass = document.getElementById('vClass').value;
+    const tsInput = document.getElementById('ts').value;
+    const screeve = document.getElementById('screeve').value;
+    const subj = document.getElementById('subj').value;
+    const dObj = document.getElementById('do').value;
+    const iObj = document.getElementById('io').value;
+    const pv = document.getElementById('pv').value.trim();
+    const explicitVer = document.getElementById('versioner').value;
+
+    let slots = { pv: "", pref: "", ver: explicitVer, root: root, ts: tsInput, formant: "", end: "" };
+
+    const isPresSeries = ["pres","impf","pres_sub"].includes(screeve);
+    const isFutSeries  = ["fut","cond","fut_sub"].includes(screeve);
+    const isSeriesI    = isPresSeries || isFutSeries;
+    const isSeriesII   = ["aor","opt"].includes(screeve);
+    const isSeriesIII  = ["perf","plup","perf_sub"].includes(screeve);
+
+    const effectiveObj = (iObj !== "none") ? iObj : dObj;
+
+    function getHSetPrefix(r) {
+        return ['დ','თ','ტ','ძ','ც','წ','ჯ','ჩ','ჭ'].includes(r.charAt(0)) ? "ს" : "ჰ";
+    }
+
+    function computeStandardPrefixes(targetSubj, targetObj, targetIo, targetRoot) {
+        let p = "";
+        const effObj = (targetIo !== "none") ? targetIo : targetObj;
+
+        if (effObj === "1s") p = "მ";
+        else if (effObj === "1p") p = "გვ";
+        else if (effObj === "2s" || effObj === "2p") p = "გ";
+        else if (targetIo === "3") {
+            p = getHSetPrefix(targetRoot);
+            if (targetSubj.startsWith("1")) p = "ვ" + p;
+        } 
+        else if (targetSubj.startsWith("1")) p = "ვ";
+        return p;
+    }
+
+    // ==========================================
+    // CLASS-STRATIFIED ROUTING PARADIGMS
+    // ==========================================
+
+    if (vClass === "1") {
+        if (!isPresSeries) slots.pv = pv;
+        if (isSeriesII) slots.ts = ""; 
+
+        if (!isSeriesIII) {
+            slots.pref = computeStandardPrefixes(subj, dObj, iObj, root);
+            
+            if (isSeriesI) {
+                if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
+                    slots.formant = "დ"; 
+                    slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "ით" : "ი";
+                } else {
+                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
+                }
+            } else if (isSeriesII) {
+                if (screeve === "aor") {
+                    slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ეს" : (subj.endsWith("p") || effectiveObj === "2p") ? "ეთ" : "ე";
+                } else {
+                    slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
+                }
+            }
+        } else { 
+            if (subj === "1s") slots.pref = "მ";
+            else if (subj === "1p") slots.pref = "გვ";
+            else if (subj.startsWith("2")) slots.pref = "გ";
+            else if (effectiveObj.startsWith("1")) slots.pref = "ვ";
+            slots.ts = (tsInput === "eb") ? "ებ" : "ი";
+            if (screeve === "perf") {
+                slots.formant = "ი"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
+            } else if (screeve === "plup") {
+                slots.formant = "ებო"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else {
+                slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
+            }
+        }
+    } 
+
+    else if (vClass === "2") {
+        if (!isPresSeries) slots.pv = pv;
+        if (isSeriesII) slots.ts = "";
+
+        if (iObj !== "none") {
+            slots.ver = "ე"; 
+            if (iObj === "1s") slots.pref = "მ";
+            else if (iObj === "1p") slots.pref = "გვ";
+            else if (iObj === "2s" || iObj === "2p") slots.pref = "გ";
+            else if (iObj === "3") slots.pref = getHSetPrefix(root);
+            if (subj.startsWith("1")) slots.pref = "ვ" + slots.pref;
+        } else {
+            if (subj.startsWith("1")) slots.pref = "ვ";
+        }
+
+        if (isSeriesI) {
+            if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
+                slots.formant = "ოდ"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else {
+                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "იან" : (subj.endsWith("p")) ? "თ" : "ი";
+            }
+        } else if (isSeriesII) {
+            if (screeve === "aor") {
+                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else {
+                slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "თ" : "";
+            }
+        } else if (isSeriesIII) {
+            slots.ts = ""; slots.formant = "ულ";
+            if (subj === "1s") slots.end = "ვარ";
+            else if (subj === "1p") slots.end = "ვართ";
+            else if (subj === "2s") slots.end = "ხარ";
+            else if (subj === "2p") slots.end = "ხართ";
+            else if (subj === "3s") slots.end = "ა";
+            else if (subj === "3p") slots.end = "ან";
+        }
+    } 
+
+    else if (vClass === "3") {
+        if (isFutSeries) { 
+            slots.pv = pv; 
+            slots.ts = "ებ";
+            slots.ver = (iObj !== "none") ? "უ" : "ი"; 
+        } 
+        else if (isSeriesII || isSeriesIII) { 
+            slots.pv = pv; 
+        }
+
+        if (!isSeriesIII) {
+            slots.pref = computeStandardPrefixes(subj, dObj, iObj, root);
+
+            if (isSeriesI) {
+                if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
+                    slots.formant = "დ"; 
+                    slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "ით" : "ი";
+                } else {
+                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
+                }
+            } else if (isSeriesII) {
+                if (screeve === "aor") {
+                    if (subj === "3s" || subj === "3p") {
+                        slots.ver = (iObj !== "none") ? "უ" : "ი";
+                        slots.ts = "ებ";
+                        slots.end = (subj === "3s") ? "ა" : "ეს";
+                    } else {
+                        slots.ver = ""; 
+                        slots.ts = "";  
+                        slots.end = (subj.endsWith("p") || effectiveObj === "2p") ? "ეთ" : "ე";
+                    }
+                } else { 
+                    slots.ver = (iObj !== "none") ? "უ" : "ი";
+                    slots.ts = "ებ";
+                    slots.formant = "ო"; 
+                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
+                }
+            }
+        } else { 
+            if (subj === "1s") slots.pref = "მ";
+            else if (subj === "1p") slots.pref = "გვ";
+            else if (subj.startsWith("2")) slots.pref = "გ";
+            slots.ts = "ებ";
+            if (screeve === "perf") {
+                slots.formant = "ი"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
+            } else if (screeve === "plup") {
+                slots.formant = "ებო"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else {
+                slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
+            }
+        }
+    } 
+
+    else if (vClass === "4") {
+        slots.ts = ""; 
+        if (subj === "1s") slots.pref = "მ";
+        else if (subj === "1p") slots.pref = "გვ";
+        else if (subj.startsWith("2")) slots.pref = "გ";
+        else slots.pref = getHSetPrefix(root);
+
+        if (effectiveObj.startsWith("1") && !subj.startsWith("1")) slots.pref = "ვ" + slots.pref;
+
+        if (isSeriesI) {
+            slots.ver = "უ"; 
+            if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
+                slots.formant = "დ"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else {
+                if (subj === "1p" || subj === "2p" || subj === "3p") slots.end = "თ";
+                else slots.end = "ს";
+            }
+        } else if (isSeriesII || isSeriesIII) {
+            slots.pv = pv;
+            slots.ver = "ე"; 
+            if (screeve === "aor" || screeve === "perf") {
+                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else { 
+                slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
+            }
+        }
+    }
+
+    const combinedWord = slots.pv + slots.pref + slots.ver + slots.root + slots.ts + slots.formant + slots.end;
+    
+    document.getElementById('word').innerText = combinedWord;
+    document.getElementById('breakdown').innerText = 
+        `${slots.pv||'Ø'} · ${slots.pref||'Ø'} · ${slots.ver||'Ø'} · ${slots.root} · ${slots.ts||'Ø'} · ${slots.formant||'Ø'} · ${slots.end||'Ø'}`;
+    
+    document.getElementById('meta-info').innerText = 
+        `Structural Track: Class ${vClass} | TAM Grid Group: ${screeve.toUpperCase()}`;
+}
+
+function copyResultToClipboard() {
+    const wordText = document.getElementById('word').innerText;
+    if (wordText === "-" || wordText === "") return;
+
+    navigator.clipboard.writeText(wordText).then(() => {
+        const copyBtn = document.getElementById('btn-copy');
+        const origText = copyBtn.innerText;
+        copyBtn.innerText = "Copied! ✓";
+        setTimeout(() => { copyBtn.innerText = origText; }, 1500);
+    }).catch(err => {
+        console.error("Could not copy word: ", err);
+    });
+}
+
+function resetEngineFields() {
+    document.getElementById('conjugatorForm').reset();
+    document.getElementById('word').innerText = "-";
+    document.getElementById('breakdown').innerText = "PV - PREF - VER - ROOT - TS - FORMANT - SUFFIX";
+    document.getElementById('meta-info').innerText = "Engine Neutral";
+}
+</script>
+</body>
+</html>
