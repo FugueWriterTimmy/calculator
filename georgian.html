@@ -2,7 +2,7 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Georgian Verb Engine v7.0</title>
+    <title>Universal Georgian Verb Engine v7.5</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121214; color: #e1e1e6; padding: 30px; margin: 0; }
         .app { max-width: 1100px; margin: auto; background: #202024; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid #29292e; }
@@ -29,7 +29,7 @@
 <body>
 
 <div class="app">
-    <h1>GEORGIAN VERB ENGINE v7.0</h1>
+    <h1>GEORGIAN VERB ENGINE v7.5</h1>
     
     <form id="conjugatorForm">
         <div class="grid">
@@ -94,7 +94,7 @@
 
                 <label>Direct Object</label>
                 <select id="do">
-                    <option value="none">None / 3rd Person</option>
+                    <option value="none">None / 3s</option> <option value="3p">They (3p)</option>
                     <option value="1s">Me (1s)</option><option value="1p">Us (1p)</option>
                     <option value="2s">You (2s)</option><option value="2p">You Pl (2p)</option>
                 </select>
@@ -110,7 +110,7 @@
                     <option value="none">None</option>
                     <option value="1s">To Me (1s)</option><option value="1p">To Us (1p)</option>
                     <option value="2s">To You (2s)</option><option value="2p">To You Pl (2p)</option>
-                    <option value="3">To Him/Her/Them (3rd)</option>
+                    <option value="3s">To Him/Her (3s)</option> <option value="3p">to Them (3p)</option>
                 </select>
 
                 <label>Version Vowel Slot</label>
@@ -171,7 +171,8 @@ function executeConjugationEngine() {
         if (effObj === "1s") p = "მ";
         else if (effObj === "1p") p = "გვ";
         else if (effObj === "2s" || effObj === "2p") p = "გ";
-        else if (targetIo === "3") {
+        // Fix: Added explicit support for 3p indirect objects alongside 3s / 3
+        else if (targetIo === "3" || targetIo === "3s" || targetIo === "3p") {
             p = getHSetPrefix(targetRoot);
             if (targetSubj.startsWith("1")) p = "ვ" + p;
         } 
@@ -189,6 +190,15 @@ function executeConjugationEngine() {
 
         if (!isSeriesIII) {
             slots.pref = computeStandardPrefixes(subj, dObj, iObj, root);
+            
+            if (iObj !== "none" && (!slots.ver || slots.ver === "")) {
+                slots.ver = "უ";
+            }
+            
+            // FIX: Placed here, it dynamically applies to BOTH Series I and Series II!
+            if (slots.ver === "უ" && (iObj.startsWith("1") || iObj.startsWith("2"))) {
+                slots.ver = "ი";
+            }
             
             if (isSeriesI) {
                 if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
@@ -279,7 +289,15 @@ function executeConjugationEngine() {
 
         if (!isSeriesIII) {
             slots.pref = computeStandardPrefixes(subj, dObj, iObj, root);
-
+            
+            if (iObj !== "none" && (!slots.ver || slots.ver === "")) {
+                slots.ver = "უ";
+            }
+            
+            if (slots.ver === "უ" && (iObj.startsWith("1") || iObj.startsWith("2"))) {
+                slots.ver = "ი";
+            }
+            
             if (isSeriesI) {
                 if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
                     slots.formant = "დ"; 
@@ -381,6 +399,29 @@ function executeConjugationEngine() {
                 // If the "დ" formant was already set above for Aorist, ensure it isn't overwritten here
                 if (!slots.formant) slots.formant = "ო"; 
                 slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
+            }
+        }
+    }
+    
+    const containsPluralMarker = (subj.endsWith("p") || dObj.endsWith("p") || iObj.endsWith("p"));
+    
+    if (containsPluralMarker) {
+        // High-priority 3rd person plural subject suffixes that block object -თ appending
+        const structuralPluralEnds = ["ან", "ენ", "ეს", "ნენ", "ნ"];
+        
+        if (!structuralPluralEnds.includes(slots.end)) {
+            if (slots.end === "ა") {
+                // Suffix collision rule: 'ა' + 'თ' becomes 'ან' for certain structural grids,
+                // but for general objective plurality trapping, it appends directly.
+                slots.end = "ათ"; 
+            } else if (slots.end === "ე") {
+                slots.end = "ეთ";
+            } else if (slots.end === "ი") {
+                slots.end = "ით";
+            } else if (slots.end === "ო") {
+                slots.end = "ოთ";
+            } else if (!slots.end.endsWith("თ")) {
+                slots.end = slots.end + "თ";
             }
         }
     }
