@@ -2,7 +2,7 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Georgian Verb Engine v7.5</title>
+    <title>Universal Georgian Verb Engine v8.0</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121214; color: #e1e1e6; padding: 30px; margin: 0; }
         .app { max-width: 1100px; margin: auto; background: #202024; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid #29292e; }
@@ -29,7 +29,7 @@
 <body>
 
 <div class="app">
-    <h1>GEORGIAN VERB ENGINE v7.5</h1>
+    <h1>GEORGIAN VERB ENGINE v8.0</h1>
     
     <form id="conjugatorForm">
         <div class="grid">
@@ -110,7 +110,7 @@
                     <option value="none">None</option>
                     <option value="1s">To Me (1s)</option><option value="1p">To Us (1p)</option>
                     <option value="2s">To You (2s)</option><option value="2p">To You Pl (2p)</option>
-                    <option value="3s">To Him/Her (3s)</option> <option value="3p">To Them (3p)</option>
+                    <option value="3s">To Him/Her (3s)</option> <option value="3p">to Them (3p)</option>
                 </select>
 
                 <label>Version Vowel Slot</label>
@@ -173,8 +173,12 @@ function executeConjugationEngine() {
         else if (effObj === "2s" || effObj === "2p") p = "გ";
         // Fix: Added explicit support for 3p indirect objects alongside 3s / 3
         else if (targetIo === "3" || targetIo === "3s" || targetIo === "3p") {
-            p = getHSetPrefix(targetRoot);
-            if (targetSubj.startsWith("1")) p = "ვ" + p;
+            // Fix: If subject is 1st person, 'ვ' wins and 'ჰ/ს' vanishes entirely
+            if (targetSubj.startsWith("1")) {
+                p = "ვ";
+            } else {
+                p = getHSetPrefix(targetRoot);
+            }
         } 
         else if (targetSubj.startsWith("1")) p = "ვ";
         return p;
@@ -289,22 +293,22 @@ function executeConjugationEngine() {
 
         if (!isSeriesIII) {
             slots.pref = computeStandardPrefixes(subj, dObj, iObj, root);
-            
-            if (iObj !== "none" && (!slots.ver || slots.ver === "")) {
-                slots.ver = "უ";
+
+            // FIX FOR TYPE 3: Automatically enforce the relative "ე" versioner vowel 
+            // for Series I & II when an indirect object is active!
+            if (iObj !== "none") {
+                slots.ver = "ე";
             }
-            
-            if (slots.ver === "უ" && (iObj.startsWith("1") || iObj.startsWith("2"))) {
-                slots.ver = "ი";
-            }
-            
+
             if (isSeriesI) {
                 if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
                     slots.formant = "დ"; 
                     slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "ით" : "ი";
                 } else {
-                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
+                    // Fix: Changed the default fallback from "" to "ი" so 1s and 2s subjects don't cut off
+                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "ი";
                 }
+
             } else if (isSeriesII) {
                 if (screeve === "aor") {
                     // Fix: Clear slots.ts for all persons in the Aorist screeve
@@ -403,24 +407,37 @@ function executeConjugationEngine() {
         }
     }
     
-    const containsPluralMarker = (subj.endsWith("p") || dObj.endsWith("p") || iObj.endsWith("p"));
-    
-    if (containsPluralMarker) {
-        // High-priority 3rd person plural subject suffixes that block object -თ appending
-        const structuralPluralEnds = ["ან", "ენ", "ეს", "ნენ", "ნ"];
         
-        if (!structuralPluralEnds.includes(slots.end)) {
-            if (slots.end === "ა") {
-                // Suffix collision rule: 'ა' + 'თ' becomes 'ან' for certain structural grids,
-                // but for general objective plurality trapping, it appends directly.
-                slots.end = "ათ"; 
-            } else if (slots.end === "ე") {
-                slots.end = "ეთ";
-            } else if (slots.end === "ი") {
+    const subjIsPlural = subj.endsWith("p");
+    const objIsPlural = dObj === "2p" || iObj === "2p" || (vClass === "1" && (dObj === "3p" || iObj === "3p"));
+
+    // 2. High-priority 3rd person plural subject endings that inherently block any object -თ 
+    const structuralPluralEnds = ["ან", "ენ", "ეს", "ნენ", "ნ"];
+    const hasStructuralPlural = structuralPluralEnds.includes(slots.end);
+
+    // 3. Evaluate if a -თ suffix should be appended
+    if ((subjIsPlural || objIsPlural) && !hasStructuralPlural) {
+        // Special structural rule: A 3rd person singular subject marker "ს" drops entirely 
+        // when an object plural "-თ" is appended (e.g., დაგიმალავს -> დაგიმალავთ)
+        if (objIsPlural && !subjIsPlural && slots.end === "ს") {
+            slots.end = "";
+        }
+
+        // Standard suffix blending transformation rules
+        if (slots.end === "ა") {
+            slots.end = "ათ";
+        } else if (slots.end === "ე") {
+            slots.end = "ეთ";
+        } else if (slots.end === "ი") {
+            // FIX: Only convert 'ი' to 'ით' if the subject is actually plural OR it meets the strict Type 1 object plural criteria
+            if (subjIsPlural || (objIsPlural && vClass === "1")) {
                 slots.end = "ით";
-            } else if (slots.end === "ო") {
-                slots.end = "ოთ";
-            } else if (!slots.end.endsWith("თ")) {
+            }
+        } else if (slots.end === "ო") {
+            slots.end = "ოთ";
+        } else if (!slots.end.endsWith("თ")) {
+            // FIX: Prevent accidental trailing appends for Type 3 singular subjects with 3p objects
+            if (subjIsPlural || (objIsPlural && vClass === "1") || dObj === "2p" || iObj === "2p") {
                 slots.end = slots.end + "თ";
             }
         }
