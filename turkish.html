@@ -64,6 +64,7 @@
     </div>
 
     <script>
+// 1. Fully audited database with distinct types for consonant-safe harmony
 const suffixDb = [
     // --- NOUN PARADIGM SLOTS ---
     { id: 'n_pl',   name: 'Plural (-ler)', category: 'Noun Slots', slot: 1, type: 'A2', surface: 'lAr', paradigm: 'noun' },
@@ -91,6 +92,7 @@ const suffixDb = [
     { id: 'v_abil', name: 'Ability (-ebil)', category: 'Modality', slot: 4, type: 'Y2', surface: 'yAbil', paradigm: 'verb' },
     { id: 'v_neg',  name: 'Negative (-me)', category: 'Modality', slot: 5, type: 'A2', surface: 'mA', paradigm: 'verb' },
     { id: 'v_impot',name: 'Impotential (-eme)', category: 'Modality', slot: 5, type: 'Y2', surface: 'yAmA', paradigm: 'verb' },
+    { id: 'v_neces', name: 'Necessitative (-meli)', category: 'Modality', slot: 4, type: 'A2', surface: 'mAlI', paradigm: 'verb' },
     
     // Tense / Aspect / Mood
     { id: 'v_gpres',name: 'Continuous (-iyor)', category: 'Tense / Aspect / Mood', slot: 6, type: 'IYOR', surface: 'Iyor', paradigm: 'verb' },
@@ -100,6 +102,11 @@ const suffixDb = [
     { id: 'v_aor',  name: 'Aorist (-er/-ir)', category: 'Tense / Aspect / Mood', slot: 6, type: 'AOR', surface: 'Ar', paradigm: 'verb' },
     { id: 'v_cond', name: 'Conditional (-se)', category: 'Tense / Aspect / Mood', slot: 6, type: 'A2', surface: 'sA', paradigm: 'verb' },
     { id: 'v_opt',  name: 'Optative (-e)', category: 'Tense / Aspect / Mood', slot: 6, type: 'Y2', surface: 'yA', paradigm: 'verb' },
+    { id: 'v_adv_ince', name: 'Temporal Framing (-ince)', category: 'Adverbial / Converb', slot: 6, type: 'Y4', surface: 'yIncA', paradigm: 'verb' },
+    { id: 'v_cop_past', name: 'Past Copula (-ydi)', category: 'Compound Tense / Copula', slot: 7, type: 'Y4', surface: 'ydI', paradigm: 'verb' },
+{ id: 'v_cop_narr', name: 'Narrative Copula (-ymiş)', category: 'Compound Tense / Copula', slot: 7, type: 'Y4', surface: 'ymIş', paradigm: 'verb' },
+{ id: 'v_cop_cond', name: 'Conditional Copula (-yse)', category: 'Compound Tense / Copula', slot: 7, type: 'Y2', surface: 'ysA', paradigm: 'verb' },
+
     
     // Type-K (Past/Cond) Agreement
     { id: 'v_k1s',  name: 'K-Pers: 1sg (-m)', category: 'Type-K Personal Agreement', slot: 7, type: 'RAW', surface: 'm', paradigm: 'verb', group: 'K' },
@@ -112,6 +119,14 @@ const suffixDb = [
     { id: 'v_g2s',  name: 'G-Pers: 2sg (-sin)', category: 'General Personal Agreement', slot: 8, type: 'D4', surface: 'sIn', paradigm: 'verb', group: 'G' },
     { id: 'v_g1p',  name: 'G-Pers: 1pl (-iz)', category: 'General Personal Agreement', slot: 8, type: 'Y4', surface: 'yIz', paradigm: 'verb', group: 'G' },
     { id: 'v_g2p',  name: 'G-Pers: 2pl (-siniz)', category: 'General Personal Agreement', slot: 8, type: 'D4', surface: 'sInIz', paradigm: 'verb', group: 'G' },
+    
+    { id: 'v_i2s', name: 'Imp-Pers: 2sg (-)', category: 'Imperative Personal Agreement', slot: 8, type: 'RAW', surface: '', paradigm: 'verb', group: 'I' },
+{ id: 'v_i3s', name: 'Imp-Pers: 3sg (-sin)', category: 'Imperative Personal Agreement', slot: 8, type: 'D4', surface: 'sIn', paradigm: 'verb', group: 'I' },
+{ id: 'v_i2p', name: 'Imp-Pers: 2pl (-in)', category: 'Imperative Personal Agreement', slot: 8, type: 'I4_VOWEL_START', surface: 'In', paradigm: 'verb', group: 'I' },
+{ id: 'v_i2p_f', name: 'Imp-Pers: 2pl Formal (-iniz)', category: 'Imperative Personal Agreement', slot: 8, type: 'D4', surface: 'InIz', paradigm: 'verb', group: 'I' },
+{ id: 'v_i3p', name: 'Imp-Pers: 3pl (-sinler)', category: 'Imperative Personal Agreement', slot: 8, type: 'D4', surface: 'sInlAr', paradigm: 'verb', group: 'I' },
+{ id: 'v_assert', name: 'Assertive Copula (-dir)', category: 'Assertion / Probability', slot: 10, type: 'D4', surface: 'dIr', paradigm: 'verb' },
+
     
     // Shared Global Tail Plural
     { id: 'v_3p',   name: 'Pers: 3pl (-ler)', category: 'Plural Agreement', slot: 9, type: 'A2', surface: 'lAr', paradigm: 'verb' }
