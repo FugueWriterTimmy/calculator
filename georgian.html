@@ -393,7 +393,12 @@ function executeConjugationEngine() {
                             slots.end = "თ";  // E.g., ვლაპარაკობთ (Present)
                         }
                     } else {
-                        slots.end = "ი";
+                        // FIX: Only root-only (suffixless) verbs get "-ი" in 1s/2s present/future
+                        if (!slots.ts || slots.ts === "") {
+                            slots.end = "ი"; // E.g., ვყეფ -> ვყეფი (1s)
+                        } else {
+                            slots.end = "";  // E.g., ვლაპარაკობ -> ვლაპარაკობ (1s)
+                        }
                     }
                 }
 			} else if (isSeriesII) {
@@ -429,15 +434,23 @@ function executeConjugationEngine() {
             
             // Fix 2: Isolate the three separate screeves to manage suffixes and formants cleanly
             if (screeve === "perf") {
+                // FIX 1: Shift versioner 'უ' to 'ი' for 1st/2nd person inverted subjects (მ-, გვ-, გ-)
+                if (["მ", "გვ", "გ"].includes(slots.pref)) {
+                    slots.ver = "ი";
+                }
+                
                 // Perfect completely drops the thematic suffix (e.g., ულაპარაკია)
                 slots.ts = ""; 
                 slots.formant = "ი"; 
-                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
-            } else if (screeve === "plup") {
-                // Pluperfect keeps the "ებ" suffix and appends the past-imperfective "ოდ" marker
-                slots.ts = "ებ";
-                slots.formant = "ოდ"; 
-                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+
+                // FIX 2: Correct inverted ending mapping for Series III Perfect
+                if (subj === "3p") {
+                    slots.end = "ან"; // უყვირიათ / ულაპარაკიათ
+                } else if (subj.endsWith("p")) {
+                    slots.end = "თ";  // გვილაპარაკია-თ, გილაპარაკია-თ
+                } else {
+                    slots.end = "ა";  // მილაპარაკი-ა, გილაპარაკი-ა, ულაპარაკი-ა
+                }
             } else if (screeve === "perf_sub") {
                 // Perfect Subjunctive keeps the "ებ" suffix, using your target "-ო-" formant layout
                 slots.ts = "ებ";
