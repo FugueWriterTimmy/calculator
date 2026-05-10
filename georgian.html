@@ -2,7 +2,7 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Georgian Verb Engine v9.0</title>
+    <title>Universal Georgian Verb Engine</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121214; color: #e1e1e6; padding: 30px; margin: 0; }
         .app { max-width: 1100px; margin: auto; background: #202024; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid #29292e; }
@@ -29,7 +29,7 @@
 <body>
 
 <div class="app">
-    <h1>GEORGIAN VERB ENGINE v9.0</h1>
+    <h1>GEORGIAN VERB ENGINE/h1>
     
     <form id="conjugatorForm">
         <div class="grid">
@@ -266,9 +266,26 @@ function executeConjugationEngine() {
             }
         } else if (isSeriesII) {
             if (screeve === "aor") {
-                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+                if (subj === "3s") {
+                    // Check if the verb has an active 'ი' or 'ე' versioner prefix
+                    if (slots.ver === "ი" || slots.ver === "ე") {
+                        // Fix: Set the dynamic 3s ending. You can change this to "ე" or "ო" 
+                        // depending on how you wish to flag the sub-root class (e.g. -მალ-ა vs -ბად-ა/ე/ო)
+                        slots.end = "ა"; 
+                    } else {
+                        slots.end = "ა"; // Standard fallback for default root passives
+                    }
+                } else if (subj === "3p") {
+                    slots.end = "ნენ";
+                } else if (subj.endsWith("p")) {
+                    slots.end = "ით";
+                } else {
+                    // Fix: 1st and 2nd person singular subjects (1s, 2s) end in "-ე"
+                    slots.end = "ე";
+                }
             } else {
-                slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "თ" : "";
+                slots.formant = "ო"; 
+                slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "თ" : "";
             }
         } else if (isSeriesIII) {
             slots.ts = ""; slots.formant = "ულ";
@@ -371,55 +388,89 @@ function executeConjugationEngine() {
         }
     } 
 
-        else if (vClass === "4") {
+    else if (vClass === "4") {
         slots.ts = ""; 
+
+        // Fix 1: Inverted Prefix Alignment. Type 4 verbs assign object prefixes 
+        // to the LOGICAL subject (tracked by your 'subj' variable)
         if (subj === "1s") slots.pref = "მ";
         else if (subj === "1p") slots.pref = "გვ";
         else if (subj.startsWith("2")) slots.pref = "გ";
-        else slots.pref = getHSetPrefix(root);
-
-        if (effectiveObj.startsWith("1") && !subj.startsWith("1")) slots.pref = "ვ" + slots.pref;
+        else {
+            // If logical subject is 3rd person, check if a 1st person logical object triggers "ვ-"
+            if (effectiveObj.startsWith("1")) {
+                slots.pref = "ვ";
+            } else {
+                slots.pref = getHSetPrefix(root);
+            }
+        }
 
         if (isSeriesI) {
-            // Fix: Changed check to include all 1st and 2nd person subjects (1s, 1p, 2s, 2p)
+            // Fix 2: Dynamically shift versioner vowel based on logical subject
             if (subj.startsWith("1") || subj.startsWith("2")) slots.ver = "ი";
             else slots.ver = "უ";
             
-            // Fix: Strip 3rd person H-set prefix (h-/s-) if the subject is 3rd person
-            if (subj.startsWith("3")) slots.pref = "";
+            // Fix 3: Strip H-Set only if there isn't a 1st person grammatical subject active
+            if (subj.startsWith("3") && !effectiveObj.startsWith("1")) {
+                slots.pref = "";
+            }
 
             if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
-                slots.formant = "დ"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+                slots.formant = "დ"; 
+                slots.end = (effectiveObj === "3s") ? "ა" : (effectiveObj === "3p") ? "ნენ" : (effectiveObj.endsWith("p")) ? "ით" : "ი";
             } else {
-                if (subj === "1p" || subj === "2p" || subj === "3p") slots.end = "თ";
+                if (effectiveObj === "1p" || effectiveObj === "2p" || effectiveObj === "3p") slots.end = "თ";
                 else slots.end = "ს";
             }
         } else if (isSeriesII || isSeriesIII) {
             slots.pv = pv;
 
             if (isSeriesIII) {
-                // Series III (Perfective) keeps inversion, uses versioner vowel "ე"
                 slots.ver = "ე"; 
-                if (subj.startsWith("3")) slots.pref = ""; 
+                if (subj.startsWith("3") && !effectiveObj.startsWith("1")) slots.pref = ""; 
             } else {
-                // Series II (Aorist) 
-                // Fix: Set the correct versioner vowel ("უ" for inverted past, "ი" for Class 1)
-                slots.ver = "უ";   // Change to "ი" if you want "შეიყვარა"
-                slots.pref = "";  // Clear the H-set prefix
-                
-                // Fix: Add the passive/intransitive stem marker "დ"
-                slots.formant = "დ"; 
+                // Fix: Expanded to recognize all primary regular Georgian stative roots
+                const isStativeRoot = [
+                    "ძ", "ძინ",             // to sleep (ძილი)
+                    "დუმ",                  // to be silent (დუმილი)
+                    "ღვიძ", "ღვიძარ",       // to be awake (ღვიძილი)
+                    "ფრთხ",                 // to be on guard/timid (ფრთხობა)
+                    "წოლ", "წვ",            // to be lying down (წოლა)
+                    "ჯდ", "ზი",             // to be sitting (ჯდომა)
+                    "დგ"                    // to be standing (დგომა)
+                ].includes(root);
+ 
+
+                if (isStativeRoot) {
+                    slots.ver = "ე"; 
+
+                    if (screeve === "opt") {
+                        slots.ts = "ებ";
+                        slots.formant = "ოდ";
+                    }
+                } else {
+                    slots.ver = "უ";   
+                    slots.pref = "";  
+                    slots.formant = "დ"; 
+                }
             }
 
-            if (screeve === "aor" || screeve === "perf") {
-                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            if (screeve === "aor") {
+                slots.end = (effectiveObj === "3s") ? "ა" : (effectiveObj === "3p") ? "ნენ" : (effectiveObj.endsWith("p")) ? "ით" : "ი";
+            } else if (screeve === "perf") {
+                slots.formant = "ი";
+                slots.end = (effectiveObj === "3s") ? "ა" : (effectiveObj === "3p") ? "ან" : (effectiveObj.endsWith("p")) ? "თ" : "";
+            } else if (screeve === "opt") {
+                // Fix 2: Explicitly enforce the structural optative plural/subjunctive ending "ეს" 
+                // so it maps seamlessly into the "-ოდ-ე-ს" track and avoids truncating to "-ოდს"
+                slots.end = "ეს";
             } else { 
-                // If the "დ" formant was already set above for Aorist, ensure it isn't overwritten here
                 if (!slots.formant) slots.formant = "ო"; 
-                slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
+                slots.end = (effectiveObj === "3s") ? "ს" : (effectiveObj === "3p") ? "ნ" : (effectiveObj.endsWith("p")) ? "თ" : "";
             }
         }
     }
+
     
         
     const subjIsPlural = subj.endsWith("p");
@@ -427,7 +478,10 @@ function executeConjugationEngine() {
 
     // 2. High-priority 3rd person plural subject endings that inherently block any object -თ 
     const structuralPluralEnds = ["ან", "ენ", "ეს", "ნენ", "ნ"];
-    const hasStructuralPlural = structuralPluralEnds.includes(slots.end);
+    
+    // Fix: Type 4 verbs ending in "ს" (like უყვარს, გვძინებოდეს) manage their own internal number 
+    // agreement and must block the trapper from appending a raw duplicate "-თ" when the grammatical object is singular.
+    const hasStructuralPlural = structuralPluralEnds.includes(slots.end) || (vClass === "4" && slots.end === "ს");
 
     // 3. Evaluate if a -თ suffix should be appended
     if ((subjIsPlural || objIsPlural) && !hasStructuralPlural) {
@@ -457,8 +511,9 @@ function executeConjugationEngine() {
         }
     }
 
-
+    // String compilation and display execution
     const combinedWord = slots.pv + slots.pref + slots.ver + slots.root + slots.ts + slots.formant + slots.end;
+
     
     document.getElementById('word').innerText = combinedWord;
     document.getElementById('breakdown').innerText = 
