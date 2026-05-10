@@ -188,22 +188,25 @@ function executeConjugationEngine() {
     // CLASS-STRATIFIED ROUTING PARADIGMS
     // ==========================================
 
-    if (vClass === "1") {
+        if (vClass === "1") {
         if (!isPresSeries) slots.pv = pv;
         if (isSeriesII) slots.ts = ""; 
 
+        // 1. GLOBAL OBJECT AND VERSIONER ROUTING (Runs for all Series)
         if (!isSeriesIII) {
             slots.pref = computeStandardPrefixes(subj, dObj, iObj, root);
             
+            // Fix: Establish baseline relative "უ" if an indirect object is active
             if (iObj !== "none" && (!slots.ver || slots.ver === "")) {
                 slots.ver = "უ";
             }
             
-            // FIX: Placed here, it dynamically applies to BOTH Series I and Series II!
+            // Fix: Dynamically correct 'უ' to 'ი' for 1st/2nd person indirect objects
             if (slots.ver === "უ" && (iObj.startsWith("1") || iObj.startsWith("2"))) {
                 slots.ver = "ი";
             }
             
+            // 2. SERIES I & II INDICATIVE/SUBJUNCTIVE BLOCK
             if (isSeriesI) {
                 if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
                     slots.formant = "დ"; 
@@ -215,12 +218,13 @@ function executeConjugationEngine() {
                 if (screeve === "aor") {
                     slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ეს" : (subj.endsWith("p") || effectiveObj === "2p") ? "ეთ" : "ე";
                 } else {
-                    slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
+                    slots.formant = "ო"; 
+                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
                 }
             }
         } else { 
-            // Fix: Pluperfect uses versioner "ე", other Series III screeves use "უ"
-            slots.ver = (screeve === "plup") ? "ე" : "უ";
+            // 3. SERIES III INVERSION BLOCK
+            slots.ver = (screeve === "plup" || screeve === "perf_sub") ? "ე" : "უ";
 
             if (subj === "1s") slots.pref = "მ";
             else if (subj === "1p") slots.pref = "გვ";
@@ -230,18 +234,41 @@ function executeConjugationEngine() {
                 slots.ver = ""; 
             }
             
-            slots.ts = (tsInput === "eb" || tsInput === "ებ") ? "ებ" : "";
-            
+            // Fix 1: Linear, non-overlapping Formant Tracker for Series III
             if (screeve === "perf") {
-                slots.formant = "ი"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
+                slots.ts = (tsInput === "eb" || tsInput === "ებ") ? "ებ" : "";
+                slots.formant = "ი";
             } else if (screeve === "plup") {
-                // Fix: Change "ებო" to "ინ" to prevent double-ებ stem explosion
-                slots.formant = "ინ"; slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
-            } else {
-                slots.formant = "ო"; slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
+                if (tsInput === "eb" || tsInput === "ებ") {
+                    slots.ts = "ებ";
+                    slots.formant = "ინ";
+                } else {
+                    slots.ts = "";
+                    slots.formant = ""; 
+                }
+            } else if (screeve === "perf_sub") {
+                // Perfect Subjunctive handles formant markers cleanly without leaking into "ინ"
+                if (tsInput === "eb" || tsInput === "ებ") {
+                    slots.ts = "ებ";
+                    slots.formant = "ინო"; 
+                } else {
+                    slots.ts = "";
+                    slots.formant = "ო"; // Sets the target "-ო-" formant for null-suffix verbs
+                }
+            }
+            
+            // Fix 2: Suffix configurations mapped precisely by screeves
+            if (screeve === "perf") {
+                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
+            } else if (screeve === "plup") {
+                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else if (screeve === "perf_sub") {
+                // Explicitly route to "ს" so it builds "-ო-ს" or "-ინო-ს" correctly
+                slots.end = "ს"; 
             }
         }
-    } 
+    }
+
 
     else if (vClass === "2") {
         if (!isPresSeries) slots.pv = pv;
@@ -288,13 +315,41 @@ function executeConjugationEngine() {
                 slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "თ" : "";
             }
         } else if (isSeriesIII) {
-            slots.ts = ""; slots.formant = "ულ";
-            if (subj === "1s") slots.end = "ვარ";
-            else if (subj === "1p") slots.end = "ვართ";
-            else if (subj === "2s") slots.end = "ხარ";
-            else if (subj === "2p") slots.end = "ხართ";
-            else if (subj === "3s") slots.end = "ა";
-            else if (subj === "3p") slots.end = "ან";
+            slots.pv = pv; 
+            slots.ts = ""; // Clears the real thematic suffix for Series III
+
+            // Pure Logic: Derive the participle marker directly from your actual thematic suffix variable
+            if (tsInput === "eb" || tsInput === "ებ" || tsInput === "av" || tsInput === "ავ") {
+                slots.formant = "ულ"; // E.g., დამალულა (from დამალვა / av)
+            } else {
+                // Null-suffix passives / root passives
+                if (root.endsWith("რ") || root.endsWith("ლ")) {
+                    slots.formant = "ალ"; // E.g., მკვდალა (from კვდომა)
+                } else {
+                    slots.formant = "ილ"; // E.g., გაზრდილა (from გაზრდა)
+                }
+            }
+
+            // Route auxiliary endings based on exact screeve parameters
+            if (screeve === "perf") {
+                if (subj === "1s") slots.end = "ვარ";
+                else if (subj === "1p") slots.end = "ვართ";
+                else if (subj === "2s") slots.end = "ხარ";
+                else if (subj === "2p") slots.end = "ხართ";
+                else if (subj === "3s") slots.end = "ა";
+                else if (subj === "3p") slots.end = "ან";
+            } else if (screeve === "plup") {
+                slots.formant = slots.formant + "იყ"; 
+                if (subj === "1s" || subj === "2s") slots.end = "ო";
+                else if (subj === "1p" || subj === "2p") slots.end = "ით";
+                else if (subj === "3s") slots.end = "ა";
+                else if (subj === "3p") slots.end = "ნენ";
+            } else if (screeve === "perf_sub") {
+                slots.formant = slots.formant + "იყ";
+                if (subj === "3p") slots.end = "ონ";
+                else if (subj.endsWith("p")) slots.end = "ოთ";
+                else slots.end = "ოს";
+            }
         }
     } 
 
@@ -379,13 +434,34 @@ function executeConjugationEngine() {
                 slots.formant = "ოდ"; 
                 // Fix: 3rd person singular is "ა" (yielding -ოდ-ა), plural is "ნენ" (yielding -ოდ-ნენ)
                 slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
-            } else {
+        } else { 
+            // Fix 1: Inversion Versioner Shift (Pluperfect and Perfect Subjunctive use "ე", Perfect uses "უ")
+            slots.ver = (screeve === "plup" || screeve === "perf_sub") ? "ე" : "უ";
+
+            // Establish standard Series III inverted dative/object prefixes
+            if (subj === "1s") slots.pref = "მ";
+            else if (subj === "1p") slots.pref = "გვ";
+            else if (subj.startsWith("2")) slots.pref = "გ";
+            
+            // Fix 2: Isolate the three separate screeves to manage suffixes and formants cleanly
+            if (screeve === "perf") {
+                // Perfect completely drops the thematic suffix (e.g., ულაპარაკია)
+                slots.ts = ""; 
+                slots.formant = "ი"; 
+                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
+            } else if (screeve === "plup") {
+                // Pluperfect keeps the "ებ" suffix and appends the past-imperfective "ოდ" marker
+                slots.ts = "ებ";
+                slots.formant = "ოდ"; 
+                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+            } else if (screeve === "perf_sub") {
+                // Perfect Subjunctive keeps the "ებ" suffix, using your target "-ო-" formant layout
                 slots.ts = "ებ";
                 slots.formant = "ო"; 
+                // Grammatical alignment is inverted, so endings map to 3rd person target markers
                 slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
             }
-            
-        }
+        } 
     } 
 
     else if (vClass === "4") {
