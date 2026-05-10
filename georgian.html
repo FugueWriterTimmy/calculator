@@ -434,22 +434,22 @@ function executeConjugationEngine() {
             
             // Fix 2: Isolate the three separate screeves to manage suffixes and formants cleanly
             if (screeve === "perf") {
-                // FIX 1: Shift versioner 'უ' to 'ი' for 1st/2nd person inverted subjects (მ-, გვ-, გ-)
+                // FIX 1: Shift versioner 'უ' to 'ი' for 1st/2nd person inverted subjects
                 if (["მ", "გვ", "გ"].includes(slots.pref)) {
                     slots.ver = "ი";
                 }
                 
-                // Perfect completely drops the thematic suffix (e.g., ულაპარაკია)
+                // Perfect drops the thematic suffix 
                 slots.ts = ""; 
                 slots.formant = "ი"; 
 
-                // FIX 2: Correct inverted ending mapping for Series III Perfect
+                // FIX 2: Ensure the "-ა-" is preserved before the plural "-თ"
                 if (subj === "3p") {
-                    slots.end = "ან"; // უყვირიათ / ულაპარაკიათ
+                    slots.end = "ან";   // ულაპარაკი-ან (or ულაპარაკი-ა-თ depending on style)
                 } else if (subj.endsWith("p")) {
-                    slots.end = "თ";  // გვილაპარაკია-თ, გილაპარაკია-თ
+                    slots.end = "ათ";  // გვ-ი-ლაპარაკ-ი-ათ, გ-ი-ლაპარაკ-ი-ათ
                 } else {
-                    slots.end = "ა";  // მილაპარაკი-ა, გილაპარაკი-ა, ულაპარაკი-ა
+                    slots.end = "ა";   // მ-ი-ლაპარაკ-ი-ა, გ-ი-ლაპარაკ-ი-ა, უ-ლაპარაკ-ი-ა
                 }
             } else if (screeve === "perf_sub") {
                 // Perfect Subjunctive keeps the "ებ" suffix, using your target "-ო-" formant layout
