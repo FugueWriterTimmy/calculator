@@ -2,7 +2,7 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Universal Georgian Verb Engine v8.0</title>
+    <title>Universal Georgian Verb Engine v9.0</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121214; color: #e1e1e6; padding: 30px; margin: 0; }
         .app { max-width: 1100px; margin: auto; background: #202024; padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid #29292e; }
@@ -29,7 +29,7 @@
 <body>
 
 <div class="app">
-    <h1>GEORGIAN VERB ENGINE v8.0</h1>
+    <h1>GEORGIAN VERB ENGINE v9.0</h1>
     
     <form id="conjugatorForm">
         <div class="grid">
@@ -87,14 +87,14 @@
             <div>
                 <label>Subject Actant</label>
                 <select id="subj">
-                    <option value="1s">Me (1s)</option><option value="1p">We (1p)</option>
+                    <option value="1s">I (1s)</option><option value="1p">We (1p)</option>
                     <option value="2s">You (2s)</option><option value="2p">You Pl (2p)</option>
-                    <option value="3s" selected>S/He/It (3s)</option><option value="3p">They (3p)</option>
+                    <option value="3s">He/She/It (3s)</option><option value="3p">They (3p)</option>
                 </select>
 
                 <label>Direct Object</label>
                 <select id="do">
-                    <option value="none">None / 3s</option> <option value="3p">They (3p)</option>
+                    <option value="none">None / 3s</option><option value="3p">Them (3p)</option>
                     <option value="1s">Me (1s)</option><option value="1p">Us (1p)</option>
                     <option value="2s">You (2s)</option><option value="2p">You Pl (2p)</option>
                 </select>
@@ -110,7 +110,7 @@
                     <option value="none">None</option>
                     <option value="1s">To Me (1s)</option><option value="1p">To Us (1p)</option>
                     <option value="2s">To You (2s)</option><option value="2p">To You Pl (2p)</option>
-                    <option value="3s">To Him/Her (3s)</option> <option value="3p">To Them (3p)</option>
+                    <option value="3s">To Him/Her (3s)</option><option value="3p">To Them (3p)</option>
                 </select>
 
                 <label>Version Vowel Slot</label>
@@ -305,30 +305,43 @@ function executeConjugationEngine() {
                     slots.formant = "დ"; 
                     slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "ით" : "ი";
                 } else {
-                    // Fix: Changed the default fallback from "" to "ი" so 1s and 2s subjects don't cut off
-                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "ი";
+                    // Logic breakdown based purely on subject values
+                    if (subj === "3s") {
+                        slots.end = "ს";
+                    } else if (subj === "3p") {
+                        slots.end = "ენ";
+                    } else if (subj.endsWith("p") || effectiveObj === "2p") {
+                        // Fix: Pure logic check for the active thematic vowel suffix
+                        if (slots.ts === "ებ" || slots.ts === "eb") {
+                            slots.end = "ით"; // E.g., ვილაპარაკებით (Future)
+                        } else {
+                            slots.end = "თ";  // E.g., ვლაპარაკობთ (Present)
+                        }
+                    } else {
+                        slots.end = "ი";
+                    }
                 }
-
-            } else if (isSeriesII) {
+			} else if (isSeriesII) {
                 if (screeve === "aor") {
                     // Fix: Clear slots.ts for all persons in the Aorist screeve
                     slots.ts = ""; 
                     
                     if (subj === "3s" || subj === "3p") {
-                        slots.ver = (iObj !== "none") ? "უ" : "ი";
+                        slots.ver = (iObj !== "none" || iObj !== "3s") ? "უ" : "ი"; 
                         slots.end = (subj === "3s") ? "ა" : "ეს";
                     } else {
                         // Fix: Keep the versioner vowel "ი/უ" for 1st & 2nd person too, 
                         // otherwise "I spoke" will incorrectly lose its "ი-" prefix
-                        slots.ver = (iObj !== "none") ? "უ" : "ი"; 
+                        slots.ver = (iObj !== "none" || iObj !== "3s") ? "უ" : "ი"; 
                         slots.end = (subj.endsWith("p") || effectiveObj === "2p") ? "ეთ" : "ე";
                     }
                 } else { 
                     slots.ver = (iObj !== "none") ? "უ" : "ი";
                     slots.ts = "ებ";
                     slots.formant = "ო"; 
-                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
+                    slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p") || effectiveObj === "2p") ? "ით" : "";
                 }
+              slots.ver = (iObj !== "none") ? "უ" : "ე";
             }
         } else { 
             // Fix: Set the inversion versioner vowel (Pluperfect uses "ე", others use "უ")
@@ -354,6 +367,7 @@ function executeConjugationEngine() {
                 slots.formant = "ო"; 
                 slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
             }
+            
         }
     } 
 
