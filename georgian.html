@@ -356,7 +356,7 @@ function executeConjugationEngine() {
         }
     } 
 
-    else if (vClass === "3") {
+	else if (vClass === "3") {
         if (isFutSeries) { 
             slots.pv = pv; 
             slots.ts = "ებ";
@@ -401,27 +401,39 @@ function executeConjugationEngine() {
                         }
                     }
                 }
-			} else if (isSeriesII) {
+            } else if (isSeriesII) {
                 if (screeve === "aor") {
-                    // Fix: Clear slots.ts for all persons in the Aorist screeve
                     slots.ts = ""; 
                     
+                    // FIX: Direct logic to handle 1st/2nd person vs 3rd person indirect objects
+                    if (iObj !== "none") {
+                        if (iObj.startsWith("1") || iObj.startsWith("2")) {
+                            slots.ver = "ე"; // e.g., ვ-ე-ლაპარაკე (1s subject), გვ-ე-ლაპარაკა (3s subject)
+                        } else {
+                            slots.ver = "უ"; // 3rd person object uses "უ" in Aorist, e.g., ვ-უ-ლაპარაკე
+                        }
+                    } else {
+                        slots.ver = "ი";     // Subjective baseline
+                    }
+
                     if (subj === "3s" || subj === "3p") {
-                        slots.ver = (iObj !== "none" || iObj !== "3s") ? "უ" : "ი"; 
                         slots.end = (subj === "3s") ? "ა" : "ეს";
                     } else {
-                        // Fix: Keep the versioner vowel "ი/უ" for 1st & 2nd person too, 
-                        // otherwise "I spoke" will incorrectly lose its "ი-" prefix
-                        slots.ver = (iObj !== "none" || iObj !== "3s") ? "უ" : "ი"; 
                         slots.end = (subj.endsWith("p") || effectiveObj === "2p") ? "ეთ" : "ე";
                     }
                 } else { 
-                    slots.ver = (iObj !== "none") ? "უ" : "ი";
-                    slots.ts = "ებ";
+                    // Optative Screeve Logic
+                    // FIX: Match the same relative versioner rules for Optative
+                    if (iObj !== "none") {
+                        slots.ver = (iObj.startsWith("1") || iObj.startsWith("2")) ? "ე" : "უ";
+                    } else {
+                        slots.ver = "ი";
+                    }
+                    
+                    slots.ts = "";
                     slots.formant = "ო"; 
                     slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p") || effectiveObj === "2p") ? "ით" : "";
                 }
-              slots.ver = (iObj !== "none") ? "უ" : "ე";
             }
         } else { 
             // Fix 1: Inversion Versioner Shift (Pluperfect and Perfect Subjunctive use "ე", Perfect uses "უ")
@@ -459,7 +471,8 @@ function executeConjugationEngine() {
                 slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
             }
         }
-    } 
+    }
+
 
     else if (vClass === "4") {
         slots.ts = ""; 
