@@ -416,25 +416,6 @@ function executeConjugationEngine() {
               slots.ver = (iObj !== "none") ? "უ" : "ე";
             }
         } else { 
-            // Fix: Set the inversion versioner vowel (Pluperfect uses "ე", others use "უ")
-            slots.ver = (screeve === "plup") ? "ე" : "უ";
-
-            if (subj === "1s") slots.pref = "მ";
-            else if (subj === "1p") slots.pref = "გვ";
-            else if (subj.startsWith("2")) slots.pref = "გ";
-            
-            if (screeve === "perf") {
-                // Fix: Clear the thematic suffix for the Perfect screeve
-                slots.ts = ""; 
-                slots.formant = "ი"; 
-                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
-            } else if (screeve === "plup") {
-                slots.ts = "ებ";
-                // Fix: Add the past-imperfective formant "დ"
-                slots.formant = "ოდ"; 
-                // Fix: 3rd person singular is "ა" (yielding -ოდ-ა), plural is "ნენ" (yielding -ოდ-ნენ)
-                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
-        } else { 
             // Fix 1: Inversion Versioner Shift (Pluperfect and Perfect Subjunctive use "ე", Perfect uses "უ")
             slots.ver = (screeve === "plup" || screeve === "perf_sub") ? "ე" : "უ";
 
@@ -461,7 +442,7 @@ function executeConjugationEngine() {
                 // Grammatical alignment is inverted, so endings map to 3rd person target markers
                 slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ნ" : (subj.endsWith("p")) ? "თ" : "";
             }
-        } 
+        }
     } 
 
     else if (vClass === "4") {
