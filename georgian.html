@@ -257,13 +257,11 @@ function executeConjugationEngine() {
                 }
             }
             
-            // Fix 2: Suffix configurations mapped precisely by screeves
             if (screeve === "perf") {
                 slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ან" : (subj.endsWith("p")) ? "თ" : "";
             } else if (screeve === "plup") {
-                slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ნენ" : (subj.endsWith("p")) ? "ით" : "ი";
+                slots.end = (effectiveObj === "3p") ? "ნენ" : "ა";
             } else if (screeve === "perf_sub") {
-                // Explicitly route to "ს" so it builds "-ო-ს" or "-ინო-ს" correctly
                 slots.end = "ს"; 
             }
         }
