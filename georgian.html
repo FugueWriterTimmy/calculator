@@ -206,7 +206,7 @@ function executeConjugationEngine() {
                 slots.ver = "ი";
             }
             
-            // 2. SERIES I & II INDICATIVE/SUBJUNCTIVE BLOCK
+          // 2. SERIES I & II INDICATIVE/SUBJUNCTIVE BLOCK
             if (isSeriesI) {
                 if (["impf", "cond", "pres_sub", "fut_sub"].includes(screeve)) {
                     slots.formant = "დ"; 
@@ -215,6 +215,11 @@ function executeConjugationEngine() {
                     slots.end = (subj === "3s") ? "ს" : (subj === "3p") ? "ენ" : (subj.endsWith("p") || effectiveObj === "2p") ? "თ" : "";
                 }
             } else if (isSeriesII) {
+                // FIX: Assign subjective versioner 'ი' for Class 1 Aorist series verbs when no indirect object exists
+                if (!slots.ver || slots.ver === "") {
+                    slots.ver = "ი";
+                }
+
                 if (screeve === "aor") {
                     slots.end = (subj === "3s") ? "ა" : (subj === "3p") ? "ეს" : (subj.endsWith("p") || effectiveObj === "2p") ? "ეთ" : "ე";
                 } else {
@@ -493,6 +498,7 @@ function executeConjugationEngine() {
                     "წოლ", "წვ",            // to be lying down (წოლა)
                     "ჯდ", "ზი",             // to be sitting (ჯდომა)
                     "დგ"                    // to be standing (დგომა)
+                   
                 ].includes(root);
  
 
