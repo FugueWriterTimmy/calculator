@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Turkish Agglutinator</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1000px; margin: 20px auto; padding: 0 20px; background: #f8f9fa; color: #212529; }
+        .container { display: flex; gap: 20px; }
+        .panel { flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .section { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #495057; }
+        input[type="text"], select { width: 100%; padding: 10px; box-sizing: border-box; font-size: 16px; border: 1px solid #ced4da; border-radius: 4px; }
+        .radio-group { display: flex; gap: 15px; margin-top: 5px; }
+        .bank-group { margin-bottom: 15px; border-left: 3px solid #0d6efd; padding-left: 10px; }
+        .bank-title { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #6c757d; margin-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+        button { padding: 8px 12px; cursor: pointer; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-size: 13px; text-align: left; transition: all 0.2s; }
+        button:hover:not(:disabled) { background: #e9ecef; border-color: #adb5bd; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .chip { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; padding: 6px 12px; margin: 4px; border-radius: 20px; font-size: 13px; color: #1c7ed6; }
+        .chip .remove { margin-left: 8px; color: #fa5252; cursor: pointer; font-weight: bold; font-size: 16px; }
+        #result-box { background: #e3fafc; border: 2px solid #99e9f2; border-radius: 6px; padding: 15px; margin-top: 20px; }
+        #result { font-size: 28px; font-weight: bold; color: #0b7285; word-break: break-all; }
+        .legend { font-size: 12px; color: #868e96; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Comprehensive Turkish Agglutinator</h1>
+    
+    <div class="container">
+        <!-- Input & Configuration -->
+        <div class="panel" style="flex: 0 0 350px;">
+            <div class="section">
+                <label for="rootWord">1. Root Word Stem:</label>
+                <input type="text" id="rootWord" value="kitap" placeholder="e.g., kitap, ev, gel, gör">
+            </div>
+            
+            <div class="section">
+                <label>2. Stem Type (Dictates Ordering Paradigm):</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="stemType" value="noun" checked> Noun</label>
+                    <label><input type="radio" name="stemType" value="verb"> Verb</label>
+                </div>
+            </div>
+
+            <div class="section">
+                <label>Active Morphological Chain:</label>
+                <div id="activeSuffixes"><em>None selected</em></div>
+            </div>
+
+            <div id="result-box">
+                <label>Agglutinated Result:</label>
+                <div id="result"></div>
+            </div>
+        </div>
+
+        <!-- Suffix Bank -->
+        <div class="panel">
+            <label>3. Click to Agglutinate (Auto-sorted by grammatical slots):</label>
+            <div id="banksContainer"></div>
+        </div>
+    </div>
+
+    <script>
+// 1. Fully audited database with distinct types for consonant-safe harmony
+const suffixDb = [
+    // --- NOUN PARADIGM SLOTS ---
+    { id: 'n_pl',   name: 'Plural (-ler)', category: 'Noun Slots', slot: 1, type: 'A2', surface: 'lAr', paradigm: 'noun' },
+    
+    { id: 'n_p1s',  name: 'Poss. 1sg (-im)', category: 'Noun Slots', slot: 2, type: 'I4_VOWEL_START', surface: 'Im', paradigm: 'noun' },
+    { id: 'n_p2s',  name: 'Poss. 2sg (-in)', category: 'Noun Slots', slot: 2, type: 'I4_VOWEL_START', surface: 'In', paradigm: 'noun' },
+    { id: 'n_p3s',  name: 'Poss. 3sg (-i)', category: 'Noun Slots', slot: 2, type: 'I3', surface: 'sI', paradigm: 'noun' },
+    { id: 'n_p1p',  name: 'Poss. 1pl (-imiz)', category: 'Noun Slots', slot: 2, type: 'I4_VOWEL_START', surface: 'ImIz', paradigm: 'noun' },
+    { id: 'n_p2p',  name: 'Poss. 2pl (-iniz)', category: 'Noun Slots', slot: 2, type: 'I4_VOWEL_START', surface: 'InIz', paradigm: 'noun' },
+    { id: 'n_p3p',  name: 'Poss. 3pl (-leri)', category: 'Noun Slots', slot: 2, type: 'D4', surface: 'lArI', paradigm: 'noun' },
+    
+    { id: 'n_acc',  name: 'Accusative (-i)', category: 'Noun Slots', slot: 3, type: 'Y4', surface: 'yI', paradigm: 'noun' },
+    { id: 'n_dat',  name: 'Dative (-e)', category: 'Noun Slots', slot: 3, type: 'Y2', surface: 'yA', paradigm: 'noun' },
+    { id: 'n_loc',  name: 'Locative (-de)', category: 'Noun Slots', slot: 3, type: 'D2', surface: 'dA', paradigm: 'noun' },
+    { id: 'n_abl',  name: 'Ablative (-den)', category: 'Noun Slots', slot: 3, type: 'D2', surface: 'dAn', paradigm: 'noun' },
+    { id: 'n_gen',  name: 'Genitive (-in)', category: 'Noun Slots', slot: 3, type: 'N4', surface: 'nIn', paradigm: 'noun' },
+    { id: 'n_ins',  name: 'Instrumental (-le)', category: 'Noun Slots', slot: 3, type: 'Y2', surface: 'ylA', paradigm: 'noun' },
+    
+    // --- VERB PARADIGM SLOTS ---
+    { id: 'v_pass', name: 'Passive (-il/-in)', category: 'Voice / Derivation', slot: 1, type: 'V_PASS', surface: 'Il', paradigm: 'verb' },
+    { id: 'v_caus', name: 'Causative (-dir)', category: 'Voice / Derivation', slot: 2, type: 'D4', surface: 'dIr', paradigm: 'verb' },
+    { id: 'v_recp', name: 'Reciprocal (-iş)', category: 'Voice / Derivation', slot: 3, type: 'I4_VOWEL_START', surface: 'Iş', paradigm: 'verb' },
+    
+    // Modality
+    { id: 'v_abil', name: 'Ability (-ebil)', category: 'Modality', slot: 4, type: 'Y2', surface: 'yAbil', paradigm: 'verb' },
+    { id: 'v_neg',  name: 'Negative (-me)', category: 'Modality', slot: 5, type: 'A2', surface: 'mA', paradigm: 'verb' },
+    { id: 'v_impot',name: 'Impotential (-eme)', category: 'Modality', slot: 5, type: 'Y2', surface: 'yAmA', paradigm: 'verb' },
+    
+    // Tense / Aspect / Mood
+    { id: 'v_gpres',name: 'Continuous (-iyor)', category: 'Tense / Aspect / Mood', slot: 6, type: 'IYOR', surface: 'Iyor', paradigm: 'verb' },
+    { id: 'v_fut',  name: 'Future (-ecek)', category: 'Tense / Aspect / Mood', slot: 6, type: 'Y2', surface: 'yAcAk', paradigm: 'verb' },
+    { id: 'v_past', name: 'Def. Past (-di)', category: 'Tense / Aspect / Mood', slot: 6, type: 'D4', surface: 'dI', paradigm: 'verb' },
+    { id: 'v_inf',  name: 'Reported Past (-miş)', category: 'Tense / Aspect / Mood', slot: 6, type: 'D4', surface: 'mIş', paradigm: 'verb' },
+    { id: 'v_aor',  name: 'Aorist (-er/-ir)', category: 'Tense / Aspect / Mood', slot: 6, type: 'AOR', surface: 'Ar', paradigm: 'verb' },
+    { id: 'v_cond', name: 'Conditional (-se)', category: 'Tense / Aspect / Mood', slot: 6, type: 'A2', surface: 'sA', paradigm: 'verb' },
+    { id: 'v_opt',  name: 'Optative (-e)', category: 'Tense / Aspect / Mood', slot: 6, type: 'Y2', surface: 'yA', paradigm: 'verb' },
+    
+    // Type-K (Past/Cond) Agreement
+    { id: 'v_k1s',  name: 'K-Pers: 1sg (-m)', category: 'Type-K Personal Agreement', slot: 7, type: 'RAW', surface: 'm', paradigm: 'verb', group: 'K' },
+    { id: 'v_k2s',  name: 'K-Pers: 2sg (-n)', category: 'Type-K Personal Agreement', slot: 7, type: 'RAW', surface: 'n', paradigm: 'verb', group: 'K' },
+    { id: 'v_k1p',  name: 'K-Pers: 1pl (-k)', category: 'Type-K Personal Agreement', slot: 7, type: 'RAW', surface: 'k', paradigm: 'verb', group: 'K' },
+    { id: 'v_k2p',  name: 'K-Pers: 2pl (-niz)', category: 'Type-K Personal Agreement', slot: 7, type: 'D4', surface: 'nIz', paradigm: 'verb', group: 'K' },
+    
+    // Type-G (General) Agreement
+    { id: 'v_g1s',  name: 'G-Pers: 1sg (-im)', category: 'General Personal Agreement', slot: 8, type: 'Y4', surface: 'yIm', paradigm: 'verb', group: 'G' },
+    { id: 'v_g2s',  name: 'G-Pers: 2sg (-sin)', category: 'General Personal Agreement', slot: 8, type: 'D4', surface: 'sIn', paradigm: 'verb', group: 'G' },
+    { id: 'v_g1p',  name: 'G-Pers: 1pl (-iz)', category: 'General Personal Agreement', slot: 8, type: 'Y4', surface: 'yIz', paradigm: 'verb', group: 'G' },
+    { id: 'v_g2p',  name: 'G-Pers: 2pl (-siniz)', category: 'General Personal Agreement', slot: 8, type: 'D4', surface: 'sInIz', paradigm: 'verb', group: 'G' },
+    
+    // Shared Global Tail Plural
+    { id: 'v_3p',   name: 'Pers: 3pl (-ler)', category: 'Plural Agreement', slot: 9, type: 'A2', surface: 'lAr', paradigm: 'verb' }
+];
+
+let selectedIds = [];
+
+function getLastVowel(str) {
+    const matches = str.match(/[aeıioöuüAEIİOÖUÜ]/g);
+    return matches ? matches[matches.length - 1].toLowerCase() : null;
+}
+
+function isUnvoiced(char) { return char ? 'fstkçşhpFSTKÇŞHP'.includes(char) : false; }
+// Includes both Latin i and Turkish dotted İ
+function isVowel(char) { return char ? 'aeıioöuüAEIİOÖUÜi'.includes(char) : false; }
+
+function resolveA2(vowel) { return 'aıou'.includes(vowel) ? 'a' : 'e'; }
+function resolveI4(vowel) {
+    if ('aı'.includes(vowel)) return 'ı';
+    if ('ei'.includes(vowel)) return 'i';
+    if ('ou'.includes(vowel)) return 'u';
+    if ('öü'.includes(vowel)) return 'ü';
+    return 'i';
+}
+
+function buildWord() {
+    let word = document.getElementById('rootWord').value.trim();
+    if (!word) {
+        document.getElementById('result').innerText = '';
+        return;
+    }
+
+    selectedIds.sort((a, b) => {
+        const s1 = suffixDb.find(s => s.id === a);
+        const s2 = suffixDb.find(s => s.id === b);
+        return s1.slot - s2.slot;
+    });
+
+    renderActiveChips();
+
+    let currentWord = word;
+    let has3sgPossessive = false;
+
+    selectedIds.forEach((id) => {
+        const suf = suffixDb.find(s => s.id === id);
+        let lastChar = currentWord.slice(-1);
+        let lastVowel = getLastVowel(currentWord);
+        let part = suf.surface;
+
+        // Determine if a suffix will act as vowel-initial to trigger root voicing
+        const willStartWithVowel = ['I4_VOWEL_START', 'V_PASS', 'AOR'].includes(suf.type) || 
+            ((suf.type === 'Y2' || suf.type === 'Y4') && !isVowel(lastChar));
+
+        if (willStartWithVowel && currentWord.length > 1) {
+            if (lastChar === 'k') currentWord = currentWord.slice(0, -1) + 'ğ';
+            else if (lastChar === 't') currentWord = currentWord.slice(0, -1) + 'd';
+            else if (lastChar === 'ç') currentWord = currentWord.slice(0, -1) + 'c';
+            else if (lastChar === 'p') currentWord = currentWord.slice(0, -1) + 'b';
+            lastChar = currentWord.slice(-1);
+        }
+
+        // Pronominal 'n' check
+        if (has3sgPossessive && ['n_acc','n_dat','n_loc','n_abl','n_gen','n_ins'].includes(suf.id)) {
+            currentWord += 'n';
+            lastChar = 'n';
+        }
+
+        // --- Core Formatting Engine ---
+        if (suf.type === 'A2') {
+            part = part.replace(/A/g, resolveA2(lastVowel));
+        }
+        else if (suf.type === 'I4_VOWEL_START') {
+            if (isVowel(lastChar)) part = part.substring(1); 
+            part = part.replace(/I/g, resolveI4(lastVowel));
+        }
+        // Protects leading consonants while changing ALL inner I letters via /g regex
+        else if (suf.type === 'D4') { 
+            if (isUnvoiced(lastChar)) part = part.replace('d', 't');
+            part = part.replace(/I/g, resolveI4(lastVowel));
+        }
+        else if (suf.type === 'I3') { 
+            if (!isVowel(lastChar)) part = part.substring(1);
+            part = part.replace(/I/g, resolveI4(lastVowel));
+            has3sgPossessive = true;
+        }
+        else if (suf.type === 'D2') { 
+            if (isUnvoiced(lastChar)) part = part.replace('d', 't');
+            part = part.replace(/A/g, resolveA2(lastVowel));
+        }
+        else if (suf.type === 'Y2' || suf.type === 'Y4') {
+            if (!isVowel(lastChar)) part = part.substring(1);
+            let replacement = (suf.type === 'Y2') ? resolveA2(lastVowel) : resolveI4(lastVowel);
+            part = part.replace(/[AI]/g, replacement);
+        }
+        else if (suf.type === 'N4') { 
+            if (!isVowel(lastChar)) part = part.substring(1);
+            part = part.replace(/I/g, resolveI4(lastVowel));
+        }
+        else if (suf.type === 'IYOR') { 
+            if (isVowel(lastChar)) {
+                currentWord = currentWord.slice(0, -1);
+                lastVowel = getLastVowel(currentWord);
+            }
+            part = part.replace(/I/g, resolveI4(lastVowel));
+        }
+        else if (suf.type === 'AOR') { 
+            if (isVowel(lastChar)) part = 'r';
+            else part = resolveI4(lastVowel) + 'r';
+        }
+        else if (suf.type === 'V_PASS') {
+            if (isVowel(lastChar)) part = 'n';
+            else if (lastChar === 'l') part = resolveI4(lastVowel) + 'n';
+            else part = resolveI4(lastVowel) + 'l';
+        }
+
+        currentWord += part;
+        if (suf.id === 'n_p3p') has3sgPossessive = true;
+    });
+
+    // Retrospective intercept mutation for future tense variants
+    if ((currentWord.endsWith('ecek') || currentWord.endsWith('acak')) && 
+        selectedIds.some(id => ['v_g1s','v_g1p'].includes(id))) {
+        currentWord = currentWord.slice(0, -1) + 'ğ';
+    }
+
+    document.getElementById('result').innerText = currentWord.toLowerCase();
+}
+
+function renderBank() {
+    const container = document.getElementById('banksContainer');
+    container.innerHTML = '';
+    const activeParadigm = document.querySelector('input[name="stemType"]:checked').value;
+    const categories = [...new Set(suffixDb.filter(s => s.paradigm === activeParadigm).map(s => s.category))];
+
+    categories.forEach(cat => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'bank-group';
+        const title = document.createElement('div');
+        title.className = 'bank-title';
+        title.innerText = cat;
+        groupDiv.appendChild(title);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+
+        suffixDb.filter(s => s.paradigm === activeParadigm && s.category === cat).forEach(suf => {
+            const btn = document.createElement('button');
+            btn.innerText = suf.name;
+            const isSelected = selectedIds.includes(suf.id);
+            let isDisabled = isSelected;
+
+            if (!isSelected && selectedIds.length > 0) {
+                const loaded = selectedIds.map(id => suffixDb.find(s => s.id === id));
+                if (suf.group && loaded.some(l => l.group && l.group !== suf.group)) isDisabled = true;
+                if (loaded.some(l => l.slot === suf.slot && l.category === suf.category)) isDisabled = true;
+            }
+
+            btn.disabled = isDisabled;
+            btn.onclick = () => { selectedIds.push(suf.id); buildWord(); renderBank(); };
+            grid.appendChild(btn);
+        });
+        groupDiv.appendChild(grid);
+        container.appendChild(groupDiv);
+    });
+}
+
+function renderActiveChips() {
+    const container = document.getElementById('activeSuffixes');
+    container.innerHTML = '';
+    if (selectedIds.length === 0) { container.innerHTML = '<em>None selected</em>'; return; }
+    selectedIds.forEach((id) => {
+        const suf = suffixDb.find(s => s.id === id);
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.innerHTML = `${suf.name} <span class="remove" onclick="removeSuffix('${id}')">&times;</span>`;
+        container.appendChild(chip);
+    });
+}
+
+function removeSuffix(id) {
+    selectedIds = selectedIds.filter(sid => sid !== id);
+    buildWord();
+    renderBank();
+}
+
+document.getElementById('rootWord').oninput = buildWord;
+document.querySelectorAll('input[name="stemType"]').forEach(radio => {
+    radio.onchange = () => { selectedIds = []; buildWord(); renderBank(); };
+});
+
+renderBank();
+buildWord();
+</script>
+
+    </script>
+</body>
+</html>
