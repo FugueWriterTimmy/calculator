@@ -560,21 +560,28 @@ function executeConjugationEngine() {
 
     
         
-    const subjIsPlural = subj.endsWith("p");
-    const objIsPlural = dObj === "2p" || iObj === "2p" || (vClass === "1" && (dObj === "3p" || iObj === "3p"));
+    // 1. Separate 1st/2nd person plurals from 3rd person plurals for precise routing
+    const speechActPlural = subj === "1p" || subj === "2p";
+    const thirdPersPluralSubj = subj === "3p";
+    
+    
+    const objIsPlural = dObj === "2p" || iObj === "2p" || 
+                        (isSeriesIII && (vClass === "1" || vClass === "3") && (dObj === "3p" || iObj === "3p"));
+
 
     // 2. High-priority 3rd person plural subject endings that inherently block any object -თ 
     const structuralPluralEnds = ["ან", "ენ", "ეს", "ნენ", "ნ"];
     
-    // Fix: Type 4 verbs ending in "ს" (like უყვარს, გვძინებოდეს) manage their own internal number 
-    // agreement and must block the trapper from appending a raw duplicate "-თ" when the grammatical object is singular.
-    const hasStructuralPlural = structuralPluralEnds.includes(slots.end) || (vClass === "4" && slots.end === "ს");
+    // FIX: Class 4 verbs use "ს" as a singular baseline that MUST morph into "-თ" for 3rd person plural subjects
+    const hasStructuralPlural = structuralPluralEnds.includes(slots.end) || (vClass === "4" && slots.end === "ს" && !thirdPersPluralSubj);
 
     // 3. Evaluate if a -თ suffix should be appended
-    if ((subjIsPlural || objIsPlural) && !hasStructuralPlural) {
+    if (speechActPlural || objIsPlural || (thirdPersPluralSubj && (vClass === "4" || isSeriesIII))) {
+        
         // Special structural rule: A 3rd person singular subject marker "ს" drops entirely 
         // when an object plural "-თ" is appended (e.g., დაგიმალავს -> დაგიმალავთ)
-        if (objIsPlural && !subjIsPlural && slots.end === "ს") {
+        // OR when a Class 4 verb shifts to a 3p plural subject (e.g., უყვარს -> უყვართ)
+        if ((objIsPlural && !speechActPlural && slots.end === "ს") || (thirdPersPluralSubj && vClass === "4" && slots.end === "ს")) {
             slots.end = "";
         }
 
@@ -584,15 +591,15 @@ function executeConjugationEngine() {
         } else if (slots.end === "ე") {
             slots.end = "ეთ";
         } else if (slots.end === "ი") {
-            // FIX: Only convert 'ი' to 'ით' if the subject is actually plural OR it meets the strict Type 1 object plural criteria
-            if (subjIsPlural || (objIsPlural && vClass === "1")) {
+            // FIX: Allow 'ი' to 'ით' conversion for 1p/2p subjects OR valid object plurals
+            if (speechActPlural || (objIsPlural && (vClass === "1" || isSeriesIII))) {
                 slots.end = "ით";
             }
         } else if (slots.end === "ო") {
             slots.end = "ოთ";
         } else if (!slots.end.endsWith("თ")) {
-            // FIX: Prevent accidental trailing appends for Type 3 singular subjects with 3p objects
-            if (subjIsPlural || (objIsPlural && vClass === "1") || dObj === "2p" || iObj === "2p") {
+            // FIX: Safeguard appends for all valid plural configurations
+            if (speechActPlural || thirdPersPluralSubj || (objIsPlural && (vClass === "1" || isSeriesIII)) || dObj === "2p" || iObj === "2p") {
                 slots.end = slots.end + "თ";
             }
         }
