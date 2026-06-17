@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zaliznyak Verb Classifier</title>
+  <title>Zaliznyak Classifier (Class 14 & 15 Fixed)</title>
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -96,12 +96,12 @@
   
   <div class="field">
     <label>Infinitive (Инфинитив)</label>
-    <input id="inf" placeholder="e.g., писать" autocomplete="off">
+    <input id="inf" placeholder="e.g., принять, деть" autocomplete="off">
   </div>
   
   <div class="field">
     <label>3rd Plural (Они)</label>
-    <input id="on" placeholder="e.g., пишут" autocomplete="off">
+    <input id="on" placeholder="e.g., примут, денут" autocomplete="off">
   </div>
   
   <button onclick="classify()">Classify</button>
@@ -126,19 +126,25 @@
     let cls = "Unknown / Irregular";
     
     if (on.endsWith("ут") || on.endsWith("ют")) {
-      if (inf.endsWith("овать") || inf.endsWith("евать")) cls = "2";
+      // CLASS 14: Infinitive in -ать/-ять paired with an unexpected present -нут/-мут ending
+      if ((inf.endsWith("ать") || inf.endsWith("ять")) && (on.endsWith("нут") || on.endsWith("мут"))) {
+        cls = "14";
+      }
+      // CLASS 15: Infinitive in -еть paired with an unexpected present -нут ending
+      else if (inf.endsWith("еть") && on.endsWith("нут")) {
+        cls = "15";
+      }
+      else if (inf.endsWith("овать") || inf.endsWith("евать")) cls = "2";
       else if (inf.endsWith("нуть")) cls = "3";
       else if (inf.endsWith("оть")) cls = "10";
       else if (inf.endsWith("ереть")) cls = "11";
       else if (inf.endsWith("ыть") && on.endsWith("оют")) cls = "12";
       else if (inf.endsWith("авать") && on.endsWith("ают")) cls = "13";
-      else if (inf.endsWith("еть") && on.endsWith("нут")) cls = "15";
+      else if (on.endsWith("ьют")) cls = "11 (Monosyllabic/Variant)"; 
       else if (on.endsWith("вут")) cls = "16";
       else if (on.endsWith("сут") || on.endsWith("зут") || on.endsWith("дут") || on.endsWith("тут") || on.endsWith("бнут") || on.endsWith("пнут")) cls = "7";
       else if (on.endsWith("гут") || on.endsWith("кут")) cls = "8";
       else if (inf.endsWith("ать") || inf.endsWith("ять") || inf.endsWith("еть")) {
-        // Class 1 keeps the infinitive vowel stem before -ют/-ут (e.g. делают)
-        // Class 6 changes the consonant structure (e.g. пишут)
         let infStem = inf.slice(0, -3); 
         cls = on.includes(infStem) ? "1" : "6";
       }
