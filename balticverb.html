@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pseudo-Baltic Verb Conjugator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #fff;
+            color: #202122;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        .input-box {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #a2a9b1;
+        }
+        .input-row {
+            margin-bottom: 12px;
+        }
+        label {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            font-size: 14px;
+            border: 1px solid #a2a9b1;
+            width: 200px;
+        }
+        .radio-group {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        table.wikitable {
+            background-color: #f8f9fa;
+            border: 1px solid #a2a9b1;
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        table.wikitable th, table.wikitable td {
+            border: 1px solid #a2a9b1;
+            padding: 0.4em 0.6em;
+        }
+        table.wikitable th {
+            background-color: #eaecf0;
+            text-align: left;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #b32424;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Pseudo-Baltic Verb Conjugator</h2>
+    
+    <div class="input-box">
+        <div class="input-row">
+            <label for="verb">Infinitive Verb: </label>
+            <input type="text" id="verb" value="kalbāt" autocomplete="off">
+        </div>
+        <div>
+            <label>Conjugation Class:</label>
+            <div class="radio-group">
+                <input type="radio" id="class1" name="vclass" value="1">
+                <label for="class1">Class 1 (-A-)</label>
+            </div>
+            <div class="radio-group">
+                <input type="radio" id="class2" name="vclass" value="2">
+                <label for="class2">Class 2 (-I-)</label>
+            </div>
+            <div class="radio-group">
+                <input type="radio" id="class3" name="vclass" value="3" checked>
+                <label for="class3">Class 3 (-O-)</label>
+            </div>
+        </div>
+    </div>
+
+    <table class="wikitable">
+        <thead>
+            <tr>
+                <th>Person</th>
+                <th>Present</th>
+                <th>Past</th>
+                <th>Future</th>
+                <th>Conditional</th>
+                <th>Past Iterative</th>
+                <th>Optative</th>
+                <th>Evidential</th>
+                <th>Future Iterative</th>
+                <th>Subjunctive</th>
+                <th>Necessitative</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Es <small>(1st Sg.)</small></th>
+                <td id="pres-1s"></td>
+                <td id="past-1s"></td>
+                <td id="fut-1s"></td>
+                <td id="cond-1s"></td>
+                <td id="iter-1s"></td>
+                <td id="opt-1s"></td>
+                <td id="evd-1s"></td>
+                <td id="fut2-1s"></td>
+                <td id="subj-1s"></td>
+                <td id="nec-1s"></td>
+            </tr>
+            <tr>
+                <th>Tu <small>(2nd Sg.)</small></th>
+                <td id="pres-2s"></td>
+                <td id="past-2s"></td>
+                <td id="fut-2s"></td>
+                <td id="cond-2s"></td>
+                <td id="iter-2s"></td>
+                <td id="opt-2s"></td>
+                <td id="evd-2s"></td>
+                <td id="fut2-2s"></td>
+                <td id="subj-2s"></td>
+                <td id="nec-2s"></td>
+            </tr>
+            <tr>
+                <th>Viņš/Viņa <small>(3rd Sg.)</small></th>
+                <td id="pres-3s"></td>
+                <td id="past-3s"></td>
+                <td id="fut-3s"></td>
+                <td id="cond-3s"></td>
+                <td id="iter-3s"></td>
+                <td id="opt-3s"></td>
+                <td id="evd-3s"></td>
+                <td id="fut2-3s"></td>
+                <td id="subj-3s"></td>
+                <td id="nec-3s"></td>
+            </tr>
+            <tr>
+                <th>Mēs <small>(1st Pl.)</small></th>
+                <td id="pres-1p"></td>
+                <td id="past-1p"></td>
+                <td id="fut-1p"></td>
+                <td id="cond-1p"></td>
+                <td id="iter-1p"></td>
+                <td id="opt-1p"></td>
+                <td id="evd-1p"></td>
+                <td id="fut2-1p"></td>
+                <td id="subj-1p"></td>
+                <td id="nec-1p"></td>
+            </tr>
+            <tr>
+                <th>Jūs <small>(2nd Pl.)</small></th>
+                <td id="pres-2p"></td>
+                <td id="past-2p"></td>
+                <td id="fut-2p"></td>
+                <td id="cond-2p"></td>
+                <td id="iter-2p"></td>
+                <td id="opt-2p"></td>
+                <td id="evd-2p"></td>
+                <td id="fut2-2p"></td>
+                <td id="subj-2p"></td>
+                <td id="nec-2p"></td>
+            </tr>
+            <tr>
+                <th>Viņi/Viņas <small>(3rd Pl.)</small></th>
+                <td id="pres-3p"></td>
+                <td id="past-3p"></td>
+                <td id="fut-3p"></td>
+                <td id="cond-3p"></td>
+                <td id="iter-3p"></td>
+                <td id="opt-3p"></td>
+                <td id="evd-3p"></td>
+                <td id="fut2-3p"></td>
+                <td id="subj-3p"></td>
+                <td id="nec-3p"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+const verbInput = document.getElementById('verb');
+const classRadios = document.getElementsByName('vclass');
+
+function conjugate() {
+    let input = verbInput.value.trim().toLowerCase();
+    if (input.length === 0) return;
+    
+    // Get currently selected class
+    let vClass = "3";
+    for (let radio of classRadios) {
+        if (radio.checked) {
+            vClass = radio.value;
+            break;
+        }
+    }
+
+    // Determine the root by removing the typical infinitive ending suffix
+    let root = input;
+    if (input.endsWith('āt')) {
+        root = input.slice(0, -2);
+    } else if (input.endsWith('ēt') || input.endsWith('īt')) {
+        root = input.slice(0, -2);
+    } else if (input.endsWith('t')) {
+        root = input.slice(0, -1);
+    }
+
+    // --- PRESENT TENSE PARADIGMS ---
+    let p1s, p2s, p3s, p1p, p2p, p3p;
+    
+    if (vClass === "1") {
+        // -A- Class (e.g., vilkt -> vilku, vilki, vilka...)
+        p1s = `${root}<span class="highlight">u</span>`;
+        p2s = `${root}<span class="highlight">i</span>`;
+        p3s = `${root}<span class="highlight">a</span>`;
+        p1p = `${root}<span class="highlight">me</span>`; // standard ending directly on root
+        p2p = `${root}<span class="highlight">te</span>`;
+        p3p = `${root}<span class="highlight">ā</span>`;  // naturally lengthened 3rd person plural
+    } else if (vClass === "2") {
+        // -I- Class (e.g., sėdėt -> sėdu, sėdi, sėdi...)
+        p1s = `${root}<span class="highlight">u</span>`;   // thematic vowel drops in 1st person
+        p2s = `${root}<span class="highlight">i</span>`;
+        p3s = `${root}<span class="highlight">i</span>`;   // -i overrides -a in 3rd person
+        p1p = `${root}<span class="highlight">ime</span>`;
+        p2p = `${root}<span class="highlight">ite</span>`;
+        p3p = `${root}<span class="highlight">ī</span>`;   // naturally lengthened 3rd person plural
+    } else {
+        // -O- Class (e.g., kalbāt -> kalbu, kalbi, kalbo...)
+        p1s = `${root}<span class="highlight">u</span>`;   // thematic vowel drops in 1st person
+        p2s = `${root}<span class="highlight">i</span>`;
+        p3s = `${root}<span class="highlight">o</span>`;
+        p1p = `${root}<span class="highlight">ome</span>`;
+        p2p = `${root}<span class="highlight">ote</span>`;
+        p3p = `${root}<span class="highlight">ō</span>`;   // naturally lengthened 3rd person plural
+    }
+
+    document.getElementById('pres-1s').innerHTML = p1s;
+    document.getElementById('pres-2s').innerHTML = p2s;
+    document.getElementById('pres-3s').innerHTML = p3s;
+    document.getElementById('pres-1p').innerHTML = p1p;
+    document.getElementById('pres-2p').innerHTML = p2p;
+    document.getElementById('pres-3p').innerHTML = p3p;
+
+    // --- PAST TENSE (Uniform -o- infix across all classes) ---
+    document.getElementById('past-1s').innerHTML = `${root}<span class="highlight">ēju</span>`;
+    document.getElementById('past-2s').innerHTML = `${root}<span class="highlight">ēji</span>`;
+    document.getElementById('past-3s').innerHTML = `${root}<span class="highlight">ēja</span>`;
+    document.getElementById('past-1p').innerHTML = `${root}<span class="highlight">ējome</span>`;
+    document.getElementById('past-2p').innerHTML = `${root}<span class="highlight">ējote</span>`;
+    document.getElementById('past-3p').innerHTML = `${root}<span class="highlight">ējō</span>`;
+
+    // --- FUTURE TENSE (Uniform -s- infix + present endings style) ---
+    document.getElementById('fut-1s').innerHTML = `${root}<span class="highlight">su</span>`;
+    document.getElementById('fut-2s').innerHTML = `${root}<span class="highlight">si</span>`;
+    document.getElementById('fut-3s').innerHTML = `${root}<span class="highlight">sa</span>`;
+    document.getElementById('fut-1p').innerHTML = `${root}<span class="highlight">sme</span>`;
+    document.getElementById('fut-2p').innerHTML = `${root}<span class="highlight">ste</span>`;
+    document.getElementById('fut-3p').innerHTML = `${root}<span class="highlight">sā</span>`;
+
+    // --- CONDITIONAL TENSE (Uniform -tu- infix) ---
+    document.getElementById('cond-1s').innerHTML = `${root}<span class="highlight">tu</span>`;
+    document.getElementById('cond-2s').innerHTML = `${root}<span class="highlight">ti</span>`;
+    document.getElementById('cond-3s').innerHTML = `${root}<span class="highlight">ta</span>`;
+    document.getElementById('cond-1p').innerHTML = `${root}<span class="highlight">tume</span>`;
+    document.getElementById('cond-2p').innerHTML = `${root}<span class="highlight">tute</span>`;
+    document.getElementById('cond-3p').innerHTML = `${root}<span class="highlight">tū</span>`;
+
+	// --- PAST ITERATIVE TENSE (Uniform -dav- infix) ---
+    document.getElementById('iter-1s').innerHTML = `${root}<span class="highlight">davu</span>`;
+    document.getElementById('iter-2s').innerHTML = `${root}<span class="highlight">davi</span>`;
+    document.getElementById('iter-3s').innerHTML = `${root}<span class="highlight">davo</span>`;
+    document.getElementById('iter-1p').innerHTML = `${root}<span class="highlight">davome</span>`;
+    document.getElementById('iter-2p').innerHTML = `${root}<span class="highlight">davote</span>`;
+    document.getElementById('iter-3p').innerHTML = `${root}<span class="highlight">davō</span>`;
+    
+	// --- OPTATIVE MOOD (Uniform -jē- infix) ---
+    document.getElementById('opt-1s').innerHTML = `${root}<span class="highlight">jēu</span>`;
+    document.getElementById('opt-2s').innerHTML = `${root}<span class="highlight">jēi</span>`;
+    document.getElementById('opt-3s').innerHTML = `${root}<span class="highlight">jēa</span>`;
+    document.getElementById('opt-1p').innerHTML = `${root}<span class="highlight">jēme</span>`;
+    document.getElementById('opt-2p').innerHTML = `${root}<span class="highlight">jēte</span>`;
+    document.getElementById('opt-3p').innerHTML = `${root}<span class="highlight">jē</span>`;    
+    
+	// --- EVIDENTIAL MOOD (Uniform -ans- infix) ---
+    document.getElementById('evd-1s').innerHTML = `${root}<span class="highlight">ansu</span>`;
+    document.getElementById('evd-2s').innerHTML = `${root}<span class="highlight">ansi</span>`;
+    document.getElementById('evd-3s').innerHTML = `${root}<span class="highlight">ansa</span>`;
+    document.getElementById('evd-1p').innerHTML = `${root}<span class="highlight">ansme</span>`;
+    document.getElementById('evd-2p').innerHTML = `${root}<span class="highlight">anste</span>`;
+    document.getElementById('evd-3p').innerHTML = `${root}<span class="highlight">ansā</span>`;  
+    
+    // --- FUTURE ITERATIVE TENSE (Uniform -sdav- infix) ---
+    document.getElementById('fut2-1s').innerHTML = `${root}<span class="highlight">sdavu</span>`;
+    document.getElementById('fut2-2s').innerHTML = `${root}<span class="highlight">sdavi</span>`;
+    document.getElementById('fut2-3s').innerHTML = `${root}<span class="highlight">sdavo</span>`;
+    document.getElementById('fut2-1p').innerHTML = `${root}<span class="highlight">sdavome</span>`;
+    document.getElementById('fut2-2p').innerHTML = `${root}<span class="highlight">sdavote</span>`;
+    document.getElementById('fut2-3p').innerHTML = `${root}<span class="highlight">sdavō</span>`;
+    
+    // --- SUBJUNCTIVE MOOD (Uniform -nē- infix) ---
+    document.getElementById('subj-1s').innerHTML = `${root}<span class="highlight">nēu</span>`;
+    document.getElementById('subj-2s').innerHTML = `${root}<span class="highlight">nēi</span>`;
+    document.getElementById('subj-3s').innerHTML = `${root}<span class="highlight">nēa</span>`;
+    document.getElementById('subj-1p').innerHTML = `${root}<span class="highlight">nēme</span>`;
+    document.getElementById('subj-2p').innerHTML = `${root}<span class="highlight">nēte</span>`;
+    document.getElementById('subj-3p').innerHTML = `${root}<span class="highlight">nē</span>`; 
+    
+    // --- NECESSITATVE MOOD (Uniform -vaj- infix) ---
+    document.getElementById('nec-1s').innerHTML = `${root}<span class="highlight">vaju</span>`;
+    document.getElementById('nec-2s').innerHTML = `${root}<span class="highlight">vaji</span>`;
+    document.getElementById('nec-3s').innerHTML = `${root}<span class="highlight">vaja</span>`;
+    document.getElementById('nec-1p').innerHTML = `${root}<span class="highlight">vajme</span>`;
+    document.getElementById('nec-2p').innerHTML = `${root}<span class="highlight">vajte</span>`;
+    document.getElementById('nec-3p').innerHTML = `${root}<span class="highlight">vajā</span>`; 
+}
+
+// Add event listeners for instant interaction
+verbInput.addEventListener('input', conjugate);
+for (let radio of classRadios) {
+    radio.addEventListener('change', conjugate);
+}
+
+// Initial script execution
+conjugate();
+</script>
+
+</body>
+</html>
