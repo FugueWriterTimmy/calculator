@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Russian Cyrillic to Latin Converter</title>
     <style>
+        /* Combined theme tokens to minimize redundancy */
         :root {
             --primary-color: #2563eb;
             --primary-hover: #1d4ed8;
@@ -12,6 +13,17 @@
             --card-bg: #ffffff;
             --text-color: #1e293b;
             --border-color: #cbd5e1;
+            --label-color: #64748b;
+            --readonly-bg: #f1f5f9;
+        }
+
+        html.dark {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #475569;
+            --label-color: #94a3b8;
+            --readonly-bg: #334155;
         }
 
         body {
@@ -23,6 +35,7 @@
             padding: 2rem 1rem;
             display: flex;
             justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
         }
 
         .container {
@@ -32,14 +45,37 @@
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: background-color 0.2s;
+        }
+
+        .header-layout {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
         }
 
         h1 {
             font-size: 1.75rem;
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            text-align: center;
+            margin: 0;
             color: var(--text-color);
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: var(--readonly-bg);
         }
 
         .converter-grid {
@@ -66,7 +102,7 @@
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #64748b;
+            color: var(--label-color);
         }
 
         textarea {
@@ -79,7 +115,9 @@
             resize: vertical;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.2s;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s, background-color 0.2s, color 0.2s;
         }
 
         textarea:focus {
@@ -88,7 +126,7 @@
         }
 
         textarea[readonly] {
-            background-color: #f1f5f9;
+            background-color: var(--readonly-bg);
             cursor: not-allowed;
         }
 
@@ -101,7 +139,7 @@
             font-weight: 500;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
             align-self: flex-end;
             margin-top: 0.5rem;
         }
@@ -140,16 +178,19 @@
 <body>
 
     <div class="container">
-        <h1>Russian Cyrillic ↔ Latin Converter</h1>
+        <div class="header-layout">
+            <h1>Russian Cyrillic ↔ Latin Converter</h1>
+            <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme">
+                <svg id="themeIcon" xmlns="http://w3.org" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+            </button>
+        </div>
         
         <div class="converter-grid">
-            <!-- Input Panel -->
             <div class="field-group">
                 <label for="cyrillicInput">Cyrillic Text (Русский)</label>
                 <textarea id="cyrillicInput" placeholder="Введите текст сюда..."></textarea>
             </div>
 
-            <!-- Output Panel -->
             <div class="field-group">
                 <label for="latinOutput">Latin Transliteration</label>
                 <textarea id="latinOutput" readonly placeholder="Transliteration appears here..."></textarea>
@@ -161,29 +202,51 @@
     <div class="toast" id="toast">Copied to clipboard!</div>
 
     <script>
-        // Transliteration dictionary mapping
+        // Transliteration dictionary mapping (Direct O(1) character lookup)
         const mapping = {
             'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'Je', 'Ё': 'Jo', 'Ж': 'Zh', 
             'З': 'Z', 'И': 'I', 'Й': 'J', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 
             'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts', 
             'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '"', 'Ы': 'Y', 'Ь': "'", 'Э': 'E', 'Ю': 'Ju', 'Я': 'Ja',
-            
             'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'je', 'ё': 'jo', 'ж': 'zh', 
             'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 
             'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 
             'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '"', 'ы': 'y', 'ь': "'", 'э': 'e', 'ю': 'ju', 'я': 'ja'
         };
 
+        // Cache DOM elements
         const cyrillicInput = document.getElementById('cyrillicInput');
         const latinOutput = document.getElementById('latinOutput');
         const copyBtn = document.getElementById('copyBtn');
         const toast = document.getElementById('toast');
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
 
-        // Function to process and convert strings
+        // Optimized inline icon strings
+        const sunSvg = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>';
+        const moonSvg = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>';
+
+        // Single assignment helper for theme icon state
+        const updateIcon = isDark => themeIcon.innerHTML = isDark ? sunSvg : moonSvg;
+
+        // Unified layout state setup
+        const isDarkMode = localStorage.getItem('theme') === 'dark' || 
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        htmlElement.classList.toggle('dark', isDarkMode);
+        updateIcon(isDarkMode);
+
+        // Click interaction logic to toggle views
+        themeToggleBtn.addEventListener('click', () => {
+            const currentIsDark = htmlElement.classList.toggle('dark');
+            localStorage.setItem('theme', currentIsDark ? 'dark' : 'light');
+            updateIcon(currentIsDark);
+        });
+
+        // Fast replacement loop using regex character class matching
         function transliterate(text) {
-            return text.split('').map(char => {
-                return mapping[char] !== undefined ? mapping[char] : char;
-            }).join('');
+            return text.replace(/[А-яЁёЪъЬь]/g, char => mapping[char] ?? char);
         }
 
         // Live input conversion listener
@@ -191,19 +254,16 @@
             latinOutput.value = transliterate(cyrillicInput.value);
         });
 
-        // Copy button capability
+        // Optimized text copying mechanism
+        let toastTimeout;
         copyBtn.addEventListener('click', () => {
             if (!latinOutput.value) return;
             
             navigator.clipboard.writeText(latinOutput.value).then(() => {
-                // Show toast animation
                 toast.style.display = 'block';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-            });
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => toast.style.display = 'none', 2000);
+            }).catch(err => console.error('Failed to copy text: ', err));
         });
     </script>
 </body>
