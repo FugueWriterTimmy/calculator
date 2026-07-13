@@ -1,0 +1,52 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{font:13px Arial;display:flex;flex-direction:column;align-items:center}
+table{border-collapse:collapse;margin-top:10px;background:#fff}
+th,td{border:1px solid #ccc;padding:4px 8px;vertical-align:top;white-space:pre-line}
+.v{writing-mode:vertical-lr;transform:rotate(180deg);font-weight:bold;background:#f0f0f0;text-align:center}
+.l{background:#fafafa;text-align:right;font-weight:500}
+.g td{background:#0f0!important}
+</style></head><body>
+<div style="display:flex;gap:10px;margin-bottom:10px">
+  <input id="p" value="γραφ"> <input id="a" value="γραψ"> <input id="s" value="γραφτ">
+  <button onclick="go()">Go</button>
+</div>
+<table id="m"></table>
+<script>
+const sf = {
+  a:[["ω","εις","ει"],["ουμε","ετε","ουν"]], p:[["ομαι","εσαι","εται"],["ομαστε","εστε","ονται"]],
+  pa:[["α","ες","ε"],["αμε","ατε","αν"]], pp:[["όμουν","όσουν","όταν"],["όμαστε","όσαστε","ονταν"]],
+  f:[["ώ","είς","εί"],["ούμε","είτε","ούν"]], e:[["ιχώ","ιχείς","ιχεί"],["ιχούμε","ιχείτε","ιχούν"]],
+  pl:[["ιχά","ιχές","ιχέ"],["ιχάμε","ιχάτε","ιχάν"]], c:[["ά","ές","έ"],["άμε","ατε","αν"]]
+};
+// Clean up vowel collisions like ει+ι -> ει
+const b = (st, sfs, pl, aug="") => sfs[pl?1:0].map(s => ((aug&&(!pl||s=="αν"))?aug+st+s : st+s).replace(/είι/g, 'ει').replace(/ειι/g, 'ει')).join("\n");
+function go() {
+  const p=document.getElementById("p").value, a=document.getElementById("a").value, s=document.getElementById("s").value;
+  const au="βγδζθκλμνξπρστφχψ".includes(p)?"έ":"", aau="βγδζθκλμνξπρστφχψ".includes(a)?"έ":"", sau="βγδζθκλμνξπρστφχψ".includes(s)?"έ":"";
+  const data = [
+    ["IND","Pres",0,b(p,sf.a,0),b(p,sf.a,1),b(p,sf.p,0),b(p,sf.p,1)],
+    ["IND","Imperf",1,b(p,sf.pa,0,au),b(p,sf.pa,1,au),b(p,sf.pp,0),b(p,sf.pp,1)],
+    ["IND","Aorist",0,b(a,sf.pa,0,aau),b(a,sf.pa,1,aau),b(s,sf.pa,0,sau),b(s,sf.pa,1,sau)],
+    ["IND","Perf",1,b(a+"ει",sf.e,0),b(a+"ει",sf.e,1),b(s+"εί",sf.e,0),b(s+"εί",sf.e,1)],
+    ["IND","Pluperf",0,b(a+"ει",sf.pl,0),b(a+"ει",sf.pl,1),b(s+"εί",sf.pl,0),b(s+"εί",sf.pl,1)],
+    ["IND","FutCont",1,b(p,sf.f,0),b(p,sf.f,1),b(p+"ούμ",sf.f,0),b(p+"ούμ",sf.f,1)],
+    ["IND","SimpFut",0,b(a,sf.f,0),b(a,sf.f,1),b(s,sf.f,0),b(s,sf.f,1)],
+    ["IND","FutPerf",1,b(a,sf.e,0),b(a,sf.e,1),b(s,sf.e,0),b(s,sf.e,1)],
+    ["IND","Cond",0,b(p,sf.c,0,au),b(p,sf.c,1,au),b(p+"ούμ",sf.c,0),b(p+"ούμ",sf.c,1)],
+    ["SUBJ","ContSub",1,b(p,sf.a,0),b(p,sf.a,1),b(p,sf.f,0),b(p,sf.f,1)],
+    ["SUBJ","SimpSub",0,b(a,sf.a,0),b(a,sf.a,1),b(s,sf.f,0),b(s,sf.f,1)],
+    ["SUBJ","PerfSub",1,b(a+"ει",sf.e,0),b(a+"ει",sf.e,1),b(s+"εί",sf.e,0),b(s+"εί",sf.e,1)],
+    ["IMP","Imper",0,`-\n${p}ε\n-`,`-\n${p}ετε\n-`,`-\n${p}ου\n-`,`-\n${p}εστε\n-`],
+    ["IMP","SimpImp",1,`-\n${a}ε\n-`,`-\n${a}τε\n-`,`-\n${s}ου\n-`,`-\n${s}είτε\n-`]
+  ];
+  let h='<tr><th colspan="2">Verb</th><th colspan="2">Active</th><th colspan="2">Passive</th></tr><tr><th>Mood</th><th>Tense</th><th>Sing</th><th>Plur</th><th>Sing</th><th>Plur</th></tr>';
+  let counts={IND:9,SUBJ:3,IMP:2}, seen={};
+  data.forEach(r => {
+    h+=`<tr class="${r[2]?'g':''}">`;
+    if(!seen[r[0]]){ h+=`<td rowspan="${counts[r[0]]}" class="v">${r[0]}</td>`; seen[r[0]]=1; }
+    h+=`<td class="l">${r[1]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`;
+  });
+  document.getElementById("m").innerHTML=h;
+}
+window.onload = go;
+</script></body></html>
