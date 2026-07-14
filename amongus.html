@@ -1,92 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Two-Player Among Us Role Generator</title>
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-      user-select: none;
-      cursor: pointer;
-    }
-
-    #screen {
-      font-size: 3em;
-      line-height: 1.5em;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Among Us Role Assigner</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0e14;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+        }
+        .container {
+            background-color: #161c24;
+            border: 2px solid #2d3748;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1 { margin-top: 0; color: #ffeb3b; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; font-size: 14px; margin-bottom: 6px; color: #a0aec0; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #4a5568;
+            border-radius: 6px;
+            background-color: #1a202c;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:disabled { background-color: #2d3748; color: #718096; border-color: #2d3748; cursor: not-allowed; }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #c53030; }
+        
+        .screen { display: none; cursor: pointer; padding: 40px 20px; border-radius: 8px; min-height: 200px; flex-direction: column; justify-content: center; align-items: center; }
+        .setup-prompt { font-size: 18px; line-height: 1.5; color: #cbd5e0; }
+        .tap-instruction { font-size: 12px; color: #718096; margin-top: 30px; text-transform: uppercase; }
+        
+        .impostor { color: #f56565; font-size: 36px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(245,101,101,0.5); }
+        .crewmate { color: #4299e1; font-size: 36px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(66,153,225,0.5); }
+        .finished { color: #48bb78; font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .countdown-title { font-size: 20px; color: #ecc94b; margin-bottom: 10px; }
+        .timer { font-size: 64px; font-weight: bold; color: #fff; margin: 10px 0; }
+    </style>
 </head>
 <body>
-  <div id="screen">Tap to start</div>
 
-  <script>
-    const screen = document.getElementById("screen");
-    let roles = [];
-    let step = 0; // 0=start, 1=player1, 2=countdown, 3=player2, 4=done
+<div class="container">
+    <div id="setupScreen">
+        <h1>Among Us Role Assigner</h1>
+        <div class="form-group">
+            <label for="playerCount">Total Players</label>
+            <input type="number" id="playerCount" value="4" min="2" max="100" oninput="toggleImpostorField()">
+        </div>
+        <div class="form-group">
+            <label for="impostorCount">Impostors</label>
+            <input type="number" id="impostorCount" value="1" min="1" max="50">
+        </div>
+        <button onclick="startGame()">Start Game</button>
+    </div>
 
-    screen.onclick = handleClick;
+    <div id="gameScreen" class="screen" onclick="handleScreenClick()">
+        <div id="screenContent"></div>
+        <div id="tapPrompt" class="tap-instruction">Tap screen to continue</div>
+    </div>
+</div>
 
-    function handleClick() {
-      if (step === 0) {
-        // Start game: decide roles
-        const impostorExists = Math.random() < 0.5;
-        if (impostorExists) {
-          roles = Math.random() < 0.5
-            ? ["IMPOSTOR", "CREWMATE"]
-            : ["CREWMATE", "IMPOSTOR"];
+<script>
+    let players = [];
+    let currentPlayerIndex = 0;
+    let gameState = 'PROMPT_REVEAL'; // States: PROMPT_REVEAL, SHOWING_ROLE, COUNTDOWN, COMPLETE
+    let countdownValue = 5;
+    let countdownInterval = null;
+
+    function toggleImpostorField() {
+        const pCount = parseInt(document.getElementById('playerCount').value) || 0;
+        const impInput = document.getElementById('impostorCount');
+        
+        if (pCount === 2) {
+            impInput.disabled = true;
+            impInput.value = "N/A";
         } else {
-          roles = ["CREWMATE", "CREWMATE"];
+            impInput.disabled = false;
+            if (impInput.value === "N/A") impInput.value = "1";
         }
-        step = 1;
-        showPlayer1();
-      } else if (step === 1) {
-        // Player 1 seen, start blackout/countdown
-        step = 2;
-        startCountdown();
-      } else if (step === 3) {
-        // Player 2 seen, final blackout and reset
-        step = 4;
-        screen.textContent = "";
+    }
+
+    function startGame() {
+        const pCount = parseInt(document.getElementById('playerCount').value);
+        if (isNaN(pCount) || pCount < 2) { alert("Please enter at least 2 players."); return; }
+
+        players = [];
+        currentPlayerIndex = 0;
+
+        if (pCount === 2) {
+            const options = [
+                ['Crewmate', 'Crewmate'],
+                ['Impostor', 'Crewmate'],
+                ['Crewmate', 'Impostor']
+            ];
+            players = options[Math.floor(Math.random() * options.length)];
+        } else {
+            const impCount = parseInt(document.getElementById('impostorCount').value);
+            if (isNaN(impCount) || impCount < 1 || impCount >= pCount) {
+                alert(`Impostors must be between 1 and ${pCount - 1} for this player count.`);
+                return;
+            }
+            for (let i = 0; i < impCount; i++) players.push('Impostor');
+            for (let i = 0; i < (pCount - impCount); i++) players.push('Crewmate');
+            
+            for (let i = players.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [players[i], players[j]] = [players[j], players[i]];
+            }
+        }
+
+        document.getElementById('setupScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'flex';
+        document.getElementById('tapPrompt').style.display = 'block';
+        
+        gameState = 'PROMPT_REVEAL';
+        updateScreenDisplay();
+    }
+
+    function handleScreenClick() {
+        if (gameState === 'COUNTDOWN' || gameState === 'COMPLETE') return;
+
+        if (gameState === 'PROMPT_REVEAL') {
+            gameState = 'SHOWING_ROLE';
+        } else if (gameState === 'SHOWING_ROLE') {
+            currentPlayerIndex++;
+            if (currentPlayerIndex >= players.length) {
+                triggerAutomatedReset();
+                return;
+            }
+            startBlindHandoffCountdown();
+        }
+        updateScreenDisplay();
+    }
+
+    function startBlindHandoffCountdown() {
+        gameState = 'COUNTDOWN';
+        countdownValue = 5;
+        updateScreenDisplay();
+        
+        countdownInterval = setInterval(() => {
+            countdownValue--;
+            if (countdownValue <= 0) {
+                clearInterval(countdownInterval);
+                gameState = 'PROMPT_REVEAL';
+            }
+            updateScreenDisplay();
+        }, 1000);
+    }
+
+    function triggerAutomatedReset() {
+        gameState = 'COMPLETE';
+        document.getElementById('tapPrompt').style.display = 'none';
+        document.getElementById('screenContent').innerHTML = `
+            <div class="finished">All Roles Assigned!</div>
+            <div class="setup-prompt" style="margin-top:15px;">Resetting to lobby in 3 seconds...</div>`;
+            
         setTimeout(() => {
-          step = 0;
-          screen.textContent = "Tap to start";
-        }, 500); // small delay so the blackout feels like a transition
-      }
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('setupScreen').style.display = 'block';
+            toggleImpostorField(); 
+        }, 3000);
     }
 
-    function showPlayer1() {
-      screen.textContent = "Player 1:\n" + roles[0] + "\n\nTap to continue";
-    }
-
-    function startCountdown() {
-      let countdown = Math.floor(Math.random() * 3) + 3; // 3-5 sec
-      screen.textContent = "";
-
-      function tick() {
-        if (countdown > 0) {
-          screen.textContent = countdown;
-          countdown--;
-          setTimeout(tick, 1000);
-        } else {
-          showPlayer2();
+    function updateScreenDisplay() {
+        const content = document.getElementById('screenContent');
+        if (gameState === 'COMPLETE') return;
+        
+        if (gameState === 'PROMPT_REVEAL') {
+            content.innerHTML = `
+                <div class="setup-prompt">
+                    Player <strong>${currentPlayerIndex + 1}</strong>,<br>
+                    step up to look at your role.
+                </div>`;
+        } 
+        else if (gameState === 'SHOWING_ROLE') {
+            const role = players[currentPlayerIndex];
+            const className = role.toLowerCase();
+            content.innerHTML = `
+                <div class="setup-prompt">You are an:</div>
+                <div class="${className}">${role}</div>`;
+        } 
+        else if (gameState === 'COUNTDOWN') {
+            content.innerHTML = `
+                <div class="countdown-title">Pass the device to Player ${currentPlayerIndex + 1}</div>
+                <div class="timer">${countdownValue}</div>
+                <div class="setup-prompt">Hiding screen elements...</div>`;
         }
-      }
-
-      tick();
     }
-
-    function showPlayer2() {
-      step = 3;
-      screen.textContent = "Player 2:\n" + roles[1] + "\n\nTap to finish";
-    }
-  </script>
+</script>
 </body>
 </html>
