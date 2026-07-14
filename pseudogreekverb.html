@@ -1,52 +1,147 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-body{font:13px Arial;display:flex;flex-direction:column;align-items:center}
-table{border-collapse:collapse;margin-top:10px;background:#fff}
-th,td{border:1px solid #ccc;padding:4px 8px;vertical-align:top;white-space:pre-line}
-.v{writing-mode:vertical-lr;transform:rotate(180deg);font-weight:bold;background:#f0f0f0;text-align:center}
-.l{background:#fafafa;text-align:right;font-weight:500}
-.g td{background:#0f0!important}
-</style></head><body>
-<div style="display:flex;gap:10px;margin-bottom:10px">
-  <input id="p" value="γραφ"> <input id="a" value="γραψ"> <input id="s" value="γραφτ">
-  <button onclick="go()">Go</button>
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<title>Synthetic Greek Conjugator</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; max-width: 1000px; margin: 10px auto; padding: 0 10px; background: #f8f9fa; color: #202122; }
+    h2 { margin: 5px 0; font-size: 18px; text-align: center; }
+    .inputs { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 8px; margin-bottom: 12px; background: #fff; padding: 10px; border: 1px solid #a2a9b1; border-radius: 3px; }
+    label { font-weight: bold; display: block; font-size: 11px; color: #54595d; }
+    input { width: 100%; box-sizing: border-box; padding: 4px; border: 1px solid #a2a9b1; border-radius: 2px; font-family: monospace; font-size: 13px; }
+    button { padding: 4px 12px; background: #3366cc; color: white; border: none; border-radius: 2px; cursor: pointer; font-weight: bold; align-self: end; height: 27px; }
+    button:hover { background: #4477dd; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #a2a9b1; font-size: 11px; }
+    th, td { border: 1px solid #a2a9b1; padding: 4px 5px; text-align: left; }
+    th { background-color: #eaecf0; font-weight: bold; }
+    .v-header { background-color: #cee0f2; font-size: 12px; text-align: center; font-weight: bold; }
+    .m-header { background-color: #f2f2f2; font-weight: bold; font-style: italic; text-align: center; width: 8%; }
+    .t-header { background-color: #f8f9fa; font-weight: bold; width: 15%; }
+    .p-col { background-color: #f8f9fa; font-weight: bold; width: 12%; text-align: center; }
+    .w { font-family: "Courier New", Courier, monospace; font-weight: 500; font-size: 12px; white-space: nowrap; }
+    .na { color: #72777d; font-style: italic; background: #f8f9fa; text-align: center; }
+</style>
+</head>
+<body>
+
+<h2>Synthetic Greek Conjugation Tool</h2>
+
+<div class="inputs">
+    <div><label>Pres. Active Stem (e.g. γραφ)</label><input id="sPA" value="γραφ"></div>
+    <div><label>Aorist Active Stem (e.g. γραψ)</label><input id="sAA" value="γραψ"></div>
+    <div><label>Pres. Passive Stem (e.g. γραφ)</label><input id="sPP" value="γραφ"></div>
+    <div><label>Aorist Passive Stem (e.g. γραφτ)</label><input id="sAP" value="γραφτ"></div>
+    <button onclick="conjugate()">Conjugate</button>
 </div>
-<table id="m"></table>
+
+<table id="chart"></table>
+
 <script>
-const sf = {
-  a:[["ω","εις","ει"],["ουμε","ετε","ουν"]], p:[["ομαι","εσαι","εται"],["ομαστε","εστε","ονται"]],
-  pa:[["α","ες","ε"],["αμε","ατε","αν"]], pp:[["όμουν","όσουν","όταν"],["όμαστε","όσαστε","ονταν"]],
-  f:[["ώ","είς","εί"],["ούμε","είτε","ούν"]], e:[["ιχώ","ιχείς","ιχεί"],["ιχούμε","ιχείτε","ιχούν"]],
-  pl:[["ιχά","ιχές","ιχέ"],["ιχάμε","ιχάτε","ιχάν"]], c:[["ά","ές","έ"],["άμε","ατε","αν"]]
-};
-// Clean up vowel collisions like ει+ι -> ει
-const b = (st, sfs, pl, aug="") => sfs[pl?1:0].map(s => ((aug&&(!pl||s=="αν"))?aug+st+s : st+s).replace(/είι/g, 'ει').replace(/ειι/g, 'ει')).join("\n");
-function go() {
-  const p=document.getElementById("p").value, a=document.getElementById("a").value, s=document.getElementById("s").value;
-  const au="βγδζθκλμνξπρστφχψ".includes(p)?"έ":"", aau="βγδζθκλμνξπρστφχψ".includes(a)?"έ":"", sau="βγδζθκλμνξπρστφχψ".includes(s)?"έ":"";
-  const data = [
-    ["IND","Pres",0,b(p,sf.a,0),b(p,sf.a,1),b(p,sf.p,0),b(p,sf.p,1)],
-    ["IND","Imperf",1,b(p,sf.pa,0,au),b(p,sf.pa,1,au),b(p,sf.pp,0),b(p,sf.pp,1)],
-    ["IND","Aorist",0,b(a,sf.pa,0,aau),b(a,sf.pa,1,aau),b(s,sf.pa,0,sau),b(s,sf.pa,1,sau)],
-    ["IND","Perf",1,b(a+"ει",sf.e,0),b(a+"ει",sf.e,1),b(s+"εί",sf.e,0),b(s+"εί",sf.e,1)],
-    ["IND","Pluperf",0,b(a+"ει",sf.pl,0),b(a+"ει",sf.pl,1),b(s+"εί",sf.pl,0),b(s+"εί",sf.pl,1)],
-    ["IND","FutCont",1,b(p,sf.f,0),b(p,sf.f,1),b(p+"ούμ",sf.f,0),b(p+"ούμ",sf.f,1)],
-    ["IND","SimpFut",0,b(a,sf.f,0),b(a,sf.f,1),b(s,sf.f,0),b(s,sf.f,1)],
-    ["IND","FutPerf",1,b(a,sf.e,0),b(a,sf.e,1),b(s,sf.e,0),b(s,sf.e,1)],
-    ["IND","Cond",0,b(p,sf.c,0,au),b(p,sf.c,1,au),b(p+"ούμ",sf.c,0),b(p+"ούμ",sf.c,1)],
-    ["SUBJ","ContSub",1,b(p,sf.a,0),b(p,sf.a,1),b(p,sf.f,0),b(p,sf.f,1)],
-    ["SUBJ","SimpSub",0,b(a,sf.a,0),b(a,sf.a,1),b(s,sf.f,0),b(s,sf.f,1)],
-    ["SUBJ","PerfSub",1,b(a+"ει",sf.e,0),b(a+"ει",sf.e,1),b(s+"εί",sf.e,0),b(s+"εί",sf.e,1)],
-    ["IMP","Imper",0,`-\n${p}ε\n-`,`-\n${p}ετε\n-`,`-\n${p}ου\n-`,`-\n${p}εστε\n-`],
-    ["IMP","SimpImp",1,`-\n${a}ε\n-`,`-\n${a}τε\n-`,`-\n${s}ου\n-`,`-\n${s}είτε\n-`]
-  ];
-  let h='<tr><th colspan="2">Verb</th><th colspan="2">Active</th><th colspan="2">Passive</th></tr><tr><th>Mood</th><th>Tense</th><th>Sing</th><th>Plur</th><th>Sing</th><th>Plur</th></tr>';
-  let counts={IND:9,SUBJ:3,IMP:2}, seen={};
-  data.forEach(r => {
-    h+=`<tr class="${r[2]?'g':''}">`;
-    if(!seen[r[0]]){ h+=`<td rowspan="${counts[r[0]]}" class="v">${r[0]}</td>`; seen[r[0]]=1; }
-    h+=`<td class="l">${r[1]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`;
-  });
-  document.getElementById("m").innerHTML=h;
+const P = ["1s", "2s", "3s", "1p", "2p", "3p"];
+const M_IND = "Indicative", M_SUB = "Subjunctive", M_IMP = "Imperative";
+
+const schema = [
+    // --- ACTIVE VOICE ---
+    ["Active", M_IND, "Present", 0, ["ω","εις","ει","ουμε","ετε","ουν"], 0],
+    ["Active", M_IND, "Imperfect", 0, ["α","ες","ε","αμε","ατε","αν"], 1],
+    ["Active", M_IND, "Simple Past (Aorist)", 1, ["α","ες","ε","αμε","ατε","αν"], 1],
+    ["Active", M_IND, "Continuous Future", 0, ["σω","σεις","σει","σουμε","σετε","σουν"], 0],
+    ["Active", M_IND, "Simple Future", 1, ["ω","εις","ει","ουμε","ετε","ουν"], 0],
+    ["Active", M_IND, "Present Perfect", 1, ["έχω","έχεις","έχει","έχουμε","έχετε","έχουν"], 0],
+    ["Active", M_IND, "Pluperfect", 1, ["έχα","έχες","έχε","έχαμε","έχατε","έχαν"], 1],
+    ["Active", M_IND, "Future Perfect", 1, ["σέχω","σέχεις","σέχει","σέχουμε","σέχετε","σέχουν"], 0],
+    
+    ["Active", M_SUB, "Present (Continuous)", 0, ["ω","εις","ει","ουμε","ετε","ουν"], 0],
+    ["Active", M_SUB, "Aorist (Simple)", 1, ["ω","εις","ει","ουμε","ετε","ουν"], 0],
+    ["Active", M_SUB, "Perfect", 1, ["έχω","έχεις","έχει","έχουμε","έχετε","έχουν"], 0],
+    
+    ["Active", M_IMP, "Present (Continuous)", 0, ["-","ε","-","-","ετε","-"], 0],
+    ["Active", M_IMP, "Aorist (Simple)", 1, ["-","ε","-","-","ετε","-"], 0],
+
+    // --- PASSIVE VOICE ---
+    ["Passive", M_IND, "Present", 2, ["ομαι","εσαι","εται","όμαστε","εστε","ονται"], 0],
+    ["Passive", M_IND, "Imperfect", 2, ["όμουν","όσουν","όταν","όμαστε","όσαστε","ονταν"], 1],
+    ["Passive", M_IND, "Simple Past (Aorist)", 3, ["ηκα","ηκες","ηκε","ήκαμε","ήκατε","ηκαν"], 1],
+    ["Passive", M_IND, "Continuous Future", 2, ["σομαι","σεσαι","σεται","σόμαστε","σεστε","σονται"], 0],
+    ["Passive", M_IND, "Simple Future", 3, ["ώ","είς","εί","ούμε","είτε","ούν"], 0],
+    ["Passive", M_IND, "Present Perfect", 3, ["έχω","έχεις","έχει","έχουμε","έχετε","έχουν"], 0],
+    ["Passive", M_IND, "Pluperfect", 3, ["έχα","έχες","έχε","έχαμε","έχατε","έχαν"], 1],
+    ["Passive", M_IND, "Future Perfect", 3, ["σέχω","σέχεις","σέχει","σέχουμε","σέχετε","σέχουν"], 0],
+    
+    ["Passive", M_SUB, "Present (Continuous)", 2, ["ομαι","εσαι","εται","όμαστε","εστε","ονται"], 0],
+    ["Passive", M_SUB, "Aorist (Simple)", 3, ["ώ","είς","εί","ούμε","είτε","ούν"], 0],
+    ["Passive", M_SUB, "Perfect", 3, ["έχω","έχεις","έχει","έχουμε","έχετε","έχουν"], 0],
+    
+    ["Passive", M_IMP, "Present (Continuous)", 2, ["-","ου","-","-","εστε","-"], 0],
+    ["Passive", M_IMP, "Aorist (Simple)", 3, ["-","ου","-","-","είτε","-"], 0]
+];
+
+function applyHistoricalFusion(stem, suffix) {
+    if (suffix.startsWith('σ')) {
+        if (/[φβπ]τ?$/.test(stem)) {
+            return stem.replace(/[φβπ]τ?$/, '') + 'ψ' + suffix.slice(1);
+        }
+        if (/[χγκ](ν)?$/.test(stem)) {
+            return stem.replace(/[χγκ](ν)?$/, '') + 'ξ' + suffix.slice(1);
+        }
+        if (/[θδτζ]$/.test(stem)) {
+            return stem.replace(/[θδτζ]$/, '') + suffix;
+        }
+    }
+    return stem + suffix;
 }
-window.onload = go;
-</script></body></html>
+
+function conjugate() {
+    const stems = [
+        document.getElementById('sPA').value.trim(),
+        document.getElementById('sAA').value.trim(),
+        document.getElementById('sPP').value.trim(),
+        document.getElementById('sAP').value.trim()
+    ];
+    
+    let html = `<thead><tr><th rowspan="2">Mood</th><th rowspan="2">Tense / Aspect</th><th colspan="6" style="text-align:center;">Person / Number</th></tr>`;
+    html += `<tr>${P.map(p => `<th class="p-col">${p}</th>`).join('')}</tr></thead><tbody>`;
+
+    ["Active", "Passive"].forEach(voice => {
+        html += `<tr><td colspan="8" class="v-header">${voice.toUpperCase()} VOICE</td></tr>`;
+        
+        [M_IND, M_SUB, M_IMP].forEach(mood => {
+            const rows = schema.filter(r => r[0] === voice && r[1] === mood);
+            if (rows.length === 0) return;
+            
+            let isFirstRow = true;
+            rows.forEach(row => {
+                const [,, tense, stemIdx, suffixes, useAugment] = row;
+                const baseStem = stems[stemIdx];
+                
+                const augment = (useAugment && baseStem.length > 0 && !"αεηιουωέάήίόύώ".includes(baseStem[0])) ? "έ" : "";
+                
+                html += `<tr>`;
+                if (isFirstRow) {
+                    html += `<td rowspan="${rows.length}" class="m-header">${mood}</td>`;
+                    isFirstRow = false;
+                }
+                
+                html += `<td class="t-header">${tense}</td>`;
+                
+                suffixes.forEach(suf => {
+                    if (suf === "-") {
+                        html += `<td class="na">—</td>`;
+                    } else {
+                        const fusedForm = applyHistoricalFusion(baseStem, suf);
+                        html += `<td class="w">${augment}${fusedForm}</td>`;
+                    }
+                });
+                html += `</tr>`;
+            });
+        });
+    });
+
+    html += `</tbody>`;
+    document.getElementById('chart').innerHTML = html;
+}
+
+conjugate();
+</script>
+</body>
+</html>
