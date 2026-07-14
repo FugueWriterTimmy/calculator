@@ -4,34 +4,56 @@
 <meta charset="UTF-8">
 <title>Synthetic Greek Conjugator</title>
 <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; max-width: 1000px; margin: 10px auto; padding: 0 10px; background: #f8f9fa; color: #202122; }
-    h2 { margin: 5px 0; font-size: 18px; text-align: center; }
-    .inputs { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 8px; margin-bottom: 12px; background: #fff; padding: 10px; border: 1px solid #a2a9b1; border-radius: 3px; }
-    label { font-weight: bold; display: block; font-size: 11px; color: #54595d; }
-    input { width: 100%; box-sizing: border-box; padding: 4px; border: 1px solid #a2a9b1; border-radius: 2px; font-family: monospace; font-size: 13px; }
-    button { padding: 4px 12px; background: #3366cc; color: white; border: none; border-radius: 2px; cursor: pointer; font-weight: bold; align-self: end; height: 27px; }
-    button:hover { background: #4477dd; }
-    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #a2a9b1; font-size: 11px; }
-    th, td { border: 1px solid #a2a9b1; padding: 4px 5px; text-align: left; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; max-width: 1000px; margin: 10px auto; padding: 0 10px; background: #f8f9fa; color: #202122; transition: background 0.2s, color 0.2s; }
+    .header-container { display: flex; justify-content: space-between; align-items: center; margin: 5px 0; }
+    h2 { margin: 0; font-size: 18px; flex-grow: 1; text-align: center; margin-left: 70px; }
+    .theme-toggle { padding: 4px 10px; background: #eaecf0; color: #202122; border: 1px solid #a2a9b1; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold; }
+    .theme-toggle:hover { background: #dcdfe3; }
+    .inputs { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 8px; margin-bottom: 12px; background: #fff; padding: 10px; border: 1px solid #a2a9b1; border-radius: 3px; transition: background 0.2s, border-color 0.2s; }
+    label { font-weight: bold; display: block; font-size: 11px; color: #54595d; transition: color 0.2s; }
+    input { width: 100%; box-sizing: border-box; padding: 4px; border: 1px solid #a2a9b1; border-radius: 2px; font-family: monospace; font-size: 13px; background: #fff; color: #202122; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+    button.conj-btn { padding: 4px 12px; background: #3366cc; color: white; border: none; border-radius: 2px; cursor: pointer; font-weight: bold; align-self: end; height: 27px; }
+    button.conj-btn:hover { background: #4477dd; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #a2a9b1; font-size: 11px; transition: background 0.2s, border-color 0.2s; }
+    th, td { border: 1px solid #a2a9b1; padding: 4px 5px; text-align: left; transition: background 0.2s, border-color 0.2s, color 0.2s; }
     th { background-color: #eaecf0; font-weight: bold; }
-    .v-header { background-color: #cee0f2; font-size: 12px; text-align: center; font-weight: bold; }
+    .v-header { background-color: #cee0f2; font-size: 12px; text-align: center; font-weight: bold; color: #202122; }
     .m-header { background-color: #f2f2f2; font-weight: bold; font-style: italic; text-align: center; width: 8%; }
     .t-header { background-color: #f8f9fa; font-weight: bold; width: 15%; }
     .p-col { background-color: #f8f9fa; font-weight: bold; width: 12%; text-align: center; }
     .w { font-family: "Courier New", Courier, monospace; font-weight: 500; font-size: 12px; white-space: nowrap; }
     .na { color: #72777d; font-style: italic; background: #f8f9fa; text-align: center; }
+
+    /* Dark Mode Overrides */
+    body.dark-mode { background: #101418; color: #e3e3e3; }
+    body.dark-mode .theme-toggle { background: #2a3038; color: #e3e3e3; border-color: #4f5761; }
+    body.dark-mode .theme-toggle:hover { background: #38404a; }
+    body.dark-mode .inputs { background: #1a2026; border-color: #4f5761; }
+    body.dark-mode label { color: #9ea4ac; }
+    body.dark-mode input { background: #101418; color: #e3e3e3; border-color: #4f5761; }
+    body.dark-mode table { background: #1a2026; border-color: #4f5761; }
+    body.dark-mode th, body.dark-mode td { border-color: #4f5761; }
+    body.dark-mode th { background-color: #2a3038; color: #e3e3e3; }
+    body.dark-mode .v-header { background-color: #1c3552; color: #cee0f2; }
+    body.dark-mode .m-header { background-color: #242b33; color: #e3e3e3; }
+    body.dark-mode .t-header { background-color: #1e242b; color: #e3e3e3; }
+    body.dark-mode .p-col { background-color: #1e242b; color: #e3e3e3; }
+    body.dark-mode .na { color: #8e959e; background: #1e242b; }
 </style>
 </head>
 <body>
 
-<h2>Synthetic Greek Conjugation Tool</h2>
+<div class="header-container">
+    <h2>Synthetic Greek Conjugation Tool</h2>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">Dark Mode</button>
+</div>
 
 <div class="inputs">
     <div><label>Pres. Active Stem (e.g. γραφ)</label><input id="sPA" value="γραφ"></div>
     <div><label>Aorist Active Stem (e.g. γραψ)</label><input id="sAA" value="γραψ"></div>
     <div><label>Pres. Passive Stem (e.g. γραφ)</label><input id="sPP" value="γραφ"></div>
     <div><label>Aorist Passive Stem (e.g. γραφτ)</label><input id="sAP" value="γραφτ"></div>
-    <button onclick="conjugate()">Conjugate</button>
+    <button class="conj-btn" onclick="conjugate()">Conjugate</button>
 </div>
 
 <table id="chart"></table>
@@ -75,6 +97,17 @@ const schema = [
     ["Passive", M_IMP, "Present (Continuous)", 2, ["-","ου","-","-","εστε","-"], 0],
     ["Passive", M_IMP, "Aorist (Simple)", 3, ["-","ου","-","-","είτε","-"], 0]
 ];
+
+function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById('themeBtn');
+    body.classList.toggle('dark-mode');
+    if (body.classList.contains('dark-mode')) {
+        btn.textContent = "Light Mode";
+    } else {
+        btn.textContent = "Dark Mode";
+    }
+}
 
 function applyHistoricalFusion(stem, suffix) {
     if (suffix.startsWith('σ')) {
