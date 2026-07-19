@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>Pseudo-Armenian Conjugator</title>
+    <style>
+        :root { --bg: #fff; --txt: #202122; --brd: #a2a9b1; --hdr: #eaecf0; --sub: #f8f9fa; --fnt: sans-serif, "Helvetica Neue", Arial; }
+        [data-theme="dark"] { --bg: #101418; --txt: #eaecf0; --brd: #44474a; --hdr: #202428; --sub: #1a1d20; }
+        body { background: var(--bg); color: var(--txt); font-family: var(--fnt); font-size: 13px; max-width: 900px; margin: auto; padding: 20px; }
+        h1 { font-family: Georgia, serif; font-weight: normal; border-bottom: 1px solid var(--brd); display: flex; justify-content: space-between; align-items: center; }
+        .panel { background: var(--sub); border: 1px solid var(--brd); padding: 10px; display: flex; gap: 15px; margin-bottom: 15px; }
+        table.wikitable { background: var(--bg); border: 1px solid var(--brd); border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        table.wikitable th, table.wikitable td { border: 1px solid var(--brd); padding: 5px; }
+        table.wikitable th { background: var(--hdr); text-align: left; }
+        tr.section-sub th { background: var(--sub); font-size: 12px; text-align: center; }
+        .trans { color: #72777d; font-style: italic; font-size: 11px; display: block; }
+        input, select, button { background: var(--bg); color: var(--txt); border: 1px solid var(--brd); padding: 4px; font-size: 13px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<h1>Pseudo-Armenian Conjugator <button onclick="toggleDark()">Theme</button></h1>
+
+<div class="panel">
+    <label>Root: <input type="text" id="root" value="սիր"></label>
+    <label>Type: <select id="type"><option value="ել">-ել</option><option value="ալ">-ալ</option></select></label>
+    <button onclick="conjugate()">Conjugate</button>
+</div>
+
+<div id="output"></div>
+
+<script>
+    function toggleDark() {
+        const el = document.documentElement;
+        if (el.getAttribute('data-theme') === 'dark') {
+            el.removeAttribute('data-theme');
+        } else {
+            el.setAttribute('data-theme', 'dark');
+        }
+    }
+
+    const tMap = {'ա':'a','բ':'b','գ':'g','դ':'d','ե':'e','զ':'z','է':'ē','ը':'ə','թ':'tʻ','ժ':'ž','ի':'i','լ':'l','խ':'x','ծ':'ts','կ':'k','հ':'h','ձ':'dz','ղ':'ł','ճ':'č','մ':'m','յ':'y','ն':'n','շ':'š','ո':'o','չ':'čʻ','պ':'p','ջ':'ǰ','ռ':'ṙ','ս':'s','վ':'v','տ':'t','ր':'r','ց':'tsʻ','ու':'u','փ':'pʻ','ք':'kʻ','օ':'ō','ֆ':'f','և':'ev'};
+    const trans = s => [...s].map((c,i) => s[i]+s[i+1]==='ու' ? (s[i+1]='', 'u') : tMap[c]||c).join('');
+    
+    const suf = {
+        'ել': { pres: ['եմ','ես','է','ենք','եք','են'], impf: ['եի','եիր','եր','եինք','եիք','եին'], fut: ['իցեմ','իցես','իցէ','իցեմք','իցէք','իցեն'], aor: ['եցի','եցիր','եց','եցինք','եցիք','եցին'], perf: ['եալեմ','եալես','եալէ','եալենք','եալեք','եալեն'], plup: ['եալեի','եալեիր','եալեր','եալեինք','եալեիք','եալեին'], spres: ['եմ','ես','ի','ենք','եք','են'], cpres: ['եմ','ես','է','ենք','եք','են'], imp: ['ի՛','եցե՛ք'] },
+        'ալ': { pres: ['ամ','աս','այ','անք','աք','ան'], impf: ['այի','այիր','ար','այինք','այիք','ային'], fut: ['այիցեմ','այիցես','այիցէ','այիցեմք','այիցէք','այիցեն'], aor: ['ացի','ացիր','աց','ացինք','ացիք','ացին'], perf: ['ացեալեմ','ացեալես','ացեալէ','ացեալենք','ացեալեք','ացեալեն'], plup: ['ացեալեի','ացեալեիր','ացեալեր','ացեալեինք','ացեալեիք','ացեալեին'], spres: ['ամ','աս','ա','անք','աք','ան'], cpres: ['ամ','աս','այ','անք','աք','ան'], imp: ['ա՛','ացե՛ք'] }
+    };
+
+    function conjugate() {
+        const r = document.getElementById('root').value.trim(), t = document.getElementById('type').value, p = suf[t];
+        if(!r) return;
+
+        // Auto-detect if root starts with an Armenian vowel
+        const vowels = ['ա', 'ե', 'է', 'ը', 'ի', 'ո', 'օ', 'ու'];
+        const startsWithVowel = vowels.some(v => r.startsWith(v));
+        const condPrefix = startsWithVowel ? 'կ՛' : 'կ';
+
+        const w = (s, pre = '') => {
+            const word = pre + r + s;
+            return `${word}<span class="trans">${trans(word)}</span>`;
+        };
+        const pers = ['1st Sing. (I)', '2nd Sing. (You)', '3rd Sing. (He/She)', '1st Plur. (We)', '2nd Plur. (You all)', '3rd Plur. (They)'];
+
+        let html = `
+        <table class="wikitable">
+            <thead>
+                <tr><th colspan="4" style="text-align:center; font-size:15px;">Conjugation of <b>${r}${t}</b> — Core Indicative Tenses</th></tr>
+                <tr class="section-sub"><th>Person / Number</th><th>Present Tense</th><th>Imperfect Tense</th><th>Future Tense</th></tr>
+            </thead>
+            <tbody>`;
+        for(let i=0; i<6; i++) {
+            html += `<tr><td><b>${pers[i]}</b></td><td>${w(p.pres[i])}</td><td>${w(p.impf[i])}</td><td>${w(p.fut[i])}</td></tr>`;
+        }
+        
+        html += `
+            </tbody>
+        </table>
+
+        <table class="wikitable">
+            <thead>
+                <tr><th colspan="4" style="text-align:center; font-size:15px;">Aorist & Perfective Tenses</th></tr>
+                <tr class="section-sub"><th>Person / Number</th><th>Aorist (Past Simple)</th><th>Perfect</th><th>Pluperfect</th></tr>
+            </thead>
+            <tbody>`;
+        for(let i=0; i<6; i++) {
+            html += `<tr><td><b>${pers[i]}</b></td><td>${w(p.aor[i])}</td><td>${w(p.perf[i])}</td><td>${w(p.plup[i])}</td></tr>`;
+        }
+
+        html += `
+            </tbody>
+        </table>
+
+        <table class="wikitable">
+            <thead>
+                <tr><th colspan="3" style="text-align:center; font-size:15px;">Subjunctive & Conditional Moods</th></tr>
+                <tr class="section-sub"><th>Person / Number</th><th>Subjunctive Present</th><th>Conditional Present (Circumfix)</th></tr>
+            </thead>
+            <tbody>`;
+        for(let i=0; i<6; i++) {
+            html += `<tr><td><b>${pers[i]}</b></td><td>${w(p.spres[i])}</td><td>${w(p.cpres[i], condPrefix)}</td></tr>`;
+        }
+
+        html += `
+            <tr class="section-sub"><th colspan="3">Imperative Mood</th></tr>
+            <tr>
+                <td><b>Command Forms</b></td>
+                <td colspan="2" style="text-align:center; font-weight:bold;">
+                    ${w(p.imp)} (2nd Sing. / Singular) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    ${w(p.imp)} (2nd Plur. / Plural)
+                </td>
+            </tr>
+            </tbody>
+        </table>`;
+        
+        document.getElementById('output').innerHTML = html;
+    }
+    window.onload = conjugate;
+</script>
+</body>
+</html>
