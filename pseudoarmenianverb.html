@@ -51,7 +51,6 @@
         const r = document.getElementById('root').value.trim(), t = document.getElementById('type').value, p = suf[t];
         if(!r) return;
 
-        // Auto-detect if root starts with an Armenian vowel
         const vowels = ['ա', 'ե', 'է', 'ը', 'ի', 'ո', 'օ', 'ու'];
         const startsWithVowel = vowels.some(v => r.startsWith(v));
         const condPrefix = startsWithVowel ? 'կ՛' : 'կ';
@@ -106,8 +105,8 @@
             <tr>
                 <td><b>Command Forms</b></td>
                 <td colspan="2" style="text-align:center; font-weight:bold;">
-                    ${w(p.imp)} (2nd Sing. / Singular) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                    ${w(p.imp)} (2nd Plur. / Plural)
+                    ${w(p.imp[0])} (2nd Sing. / Singular) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    ${w(p.imp[1])} (2nd Plur. / Plural)
                 </td>
             </tr>
             </tbody>
