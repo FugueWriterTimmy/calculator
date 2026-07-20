@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pseudo-Icelandic Verb Conjugator</title>
+    <style>
+        :root {
+            --bg: #fff; --text: #202122; --border: #a2a9b1; --hdr: #eaecf0; --th: #f8f9fa; --accent: #36c; --input-bg: #fff;
+        }
+        body.dark-mode {
+            --bg: #1a1a1a; --text: #eaecf0; --border: #44474a; --hdr: #2d3136; --th: #202327; --accent: #69f; --input-bg: #2d3136;
+        }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 20px; transition: background 0.15s, color 0.15s; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 15px; }
+        h1 { font-size: 1.6em; font-weight: normal; margin: 0; }
+        button { background: var(--hdr); color: var(--text); border: 1px solid var(--border); padding: 5px 10px; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; background: var(--th); padding: 12px; border: 1px solid var(--border); }
+        .grid label { display: block; font-size: 0.8em; font-weight: bold; margin-bottom: 3px; }
+        .grid input { width: 100%; padding: 4px; box-sizing: border-box; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); }
+        .go-btn { grid-column: 1 / -1; background: var(--accent); color: #fff; border: none; padding: 8px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th, td { border: 1px solid var(--border); padding: 6px; text-align: left; }
+        th { background: var(--th); }
+        .section th { background: var(--hdr); text-align: center; font-size: 1em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-bar">
+        <h1>Pseudo-Icelandic Verb Conjugator</h1>
+        <button onclick="document.body.classList.toggle('dark-mode')">Toggle Dark Theme</button>
+    </div>
+
+    <div class="grid">
+        <div><label>Infinitive</label><input id="s_inf" value="brjót"></div>
+        <div><label>Pres. Sg.</label><input id="s_psg" value="brýt"></div>
+        <div><label>Past Sg.</label><input id="s_tsg" value="braut"></div>
+        <div><label>Past Pl.</label><input id="s_tpl" value="brot"></div>
+        <div><label>Past Subj.</label><input id="s_sub" value="bryt"></div>
+        <button class="go-btn" onclick="conjugate()">Conjugate</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr class="section"><th colspan="6">Indicative Mood (Framsöguháttur)</th></tr>
+            <tr><th>Person</th><th>Present</th><th>Past</th><th>Future</th><th>Perfect</th><th>Pluperfect</th></tr>
+        </thead>
+        <tbody id="ind_body"></tbody>
+        <thead>
+            <tr class="section"><th colspan="6">Subjunctive Mood (Viðtengingaháttur)</th></tr>
+            <tr><th>Person</th><th colspan="2">Present Subjunctive</th><th colspan="3">Past Subjunctive</th></tr>
+        </thead>
+        <tbody id="sub_body"></tbody>
+    </table>
+</div>
+
+<script>
+    const persons = ["1SG (Ég)", "2SG (Þú)", "3SG (Hann/Hún)", "1PL (Við)", "2PL (Þið)", "3PL (Þeir)"];
+    
+    const rules = {
+        pres:  { stem: 'psg', sfx: ['o', 'ir', 'ur'], altStem: 'inf', altSfx: ['um', 'ið', 'a'] },
+        past:  { stem: 'tsg', sfx: ['a', 'st', 'i'],  altStem: 'tpl', altSfx: ['um', 'uð', 'u'] },
+        fut:   { stem: 'inf', sfx: ['o', 'ir', 'ur', 'um', 'ið', 'a'], ifx: 'mun' },
+        perf:  { stem: 'tpl', sfx: ['a', 'st', 'i', 'um', 'ið', 'a'],  ifx: 'hef' },
+        plup:  { stem: 'tpl', sfx: ['a', 'ir', 'i', 'um', 'uð', 'u'],   ifx: 'hafð' },
+        spres: { stem: 'inf', sfx: ['i', 'ir', 'ið', 'umst', 'iðst', 'ist'] },
+        spast: { stem: 'sub', sfx: ['a', 'ir', 'i', 'um', 'uð', 'u'] }
+    };
+
+    function renderCell(stems, config, idx) {
+        const isAlt = idx > 2 && config.altStem;
+        const stem = stems[isAlt ? config.altStem : config.stem];
+        const sfx = (isAlt ? config.altSfx : config.sfx)[idx > 2 && config.altStem ? idx - 3 : idx];
+        const infix = config.ifx || '';
+        return `${stem}${infix}${sfx}`;
+    }
+
+    function conjugate() {
+        const stems = {
+            inf: document.getElementById('s_inf').value.trim(),
+            psg: document.getElementById('s_psg').value.trim(),
+            tsg: document.getElementById('s_tsg').value.trim(),
+            tpl: document.getElementById('s_tpl').value.trim(),
+            sub: document.getElementById('s_sub').value.trim()
+        };
+
+        let indHtml = '', subHtml = '';
+
+        persons.forEach((pers, i) => {
+            indHtml += `<tr><th>${pers}</th>
+                <td>${renderCell(stems, rules.pres, i)}</td>
+                <td>${renderCell(stems, rules.past, i)}</td>
+                <td>${renderCell(stems, rules.fut, i)}</td>
+                <td>${renderCell(stems, rules.perf, i)}</td>
+                <td>${renderCell(stems, rules.plup, i)}</td></tr>`;
+
+            subHtml += `<tr><th>${pers}</th>
+                <td colspan="2">${renderCell(stems, rules.spres, i)}</td>
+                <td colspan="3">${renderCell(stems, rules.spast, i)}</td></tr>`;
+        });
+
+        document.getElementById('ind_body').innerHTML = indHtml;
+        document.getElementById('sub_body').innerHTML = subHtml;
+    }
+
+    window.onload = conjugate;
+</script>
+</body>
+</html>
