@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ga">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pseudo-Irish Verb Conjugator</title>
+    <style>
+        :root {
+            --bg: #f8f9fa; --card: #fff; --border: #a2a9b1; --th: #f2f2f2; --text: #202122; --head: #000; --accent: #0056b3;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #101418; --card: #1e232a; --border: #444d56; --th: #22272e; --text: #adbac7; --head: #f0f6fc; --accent: #3182ce;
+            }
+        }
+        :root[data-theme="dark"] {
+            --bg: #101418; --card: #1e232a; --border: #444d56; --th: #22272e; --text: #adbac7; --head: #f0f6fc; --accent: #3182ce;
+        }
+        :root[data-theme="light"] {
+            --bg: #f8f9fa; --card: #fff; --border: #a2a9b1; --th: #f2f2f2; --text: #202122; --head: #000; --accent: #0056b3;
+        }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 20px; }
+        .wrap { max-width: 900px; margin: 0 auto; background: var(--card); padding: 20px; border: 1px solid var(--border); }
+        .hdr { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        h1 { color: var(--head); font-size: 1.5em; margin: 0; }
+        h2 { color: var(--head); font-size: 1.2em; margin: 20px 0 10px; }
+        button { background: var(--accent); color: #fff; padding: 8px 16px; border: none; cursor: pointer; font-weight: bold; }
+        .tgl { background: var(--th); color: var(--text); border: 1px solid var(--border); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0; }
+        label { display: block; font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: var(--text); }
+        input { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-bottom: 15px; }
+        th, td { border: 1px solid var(--border); padding: 6px; text-align: left; }
+        th { background: var(--th); color: var(--head); }
+        .p-col { background: var(--th); font-weight: bold; width: 18%; }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+    <div class="hdr">
+        <h1>Pseudo-Irish Verb Conjugator</h1>
+        <button class="tgl" onclick="tgl()">Toggle Mode</button>
+    </div>
+    
+    <div class="grid">
+        <div>
+            <label for="r">Base Root</label>
+            <input type="text" id="r" value="mol">
+        </div>
+        <div>
+            <label for="lr">Lenited Root</label>
+            <input type="text" id="lr" value="mhol">
+        </div>
+        <div>
+            <label for="fr">Future Base</label>
+            <input type="text" id="fr" value="molf">
+        </div>
+        <div>
+            <label for="cr">Lenited Future Base</label>
+            <input type="text" id="cr" value="mholf">
+        </div>
+    </div>
+    
+    <div style="display:flex; gap:10px;">
+        <button onclick="run('broad')">Broad</button>
+        <button onclick="run('slender')">Slender</button>
+    </div>
+
+    <div id="out"></div>
+</div>
+
+<script>
+const E = {
+    broad:   {pres:['aim','air','ann','aidh','aimid','taoi','aid'], past:['as','ais','','aigh','amar','abhar','adar'], ph:['ainn','tá','adh','adhair','aimis','taois','aidís'], fut:['ad','air','aidh','aidhinn','aimid','aidhthí','aid'], cond:['ainn','fá','adh','adhair','aimis','faithís','aidís'], ps:['ad','air','aidh','aidhne','aimid','taoi','aid'], pts:['ainn','tá','adh','adhair','aimis','taois','aidís'], imp:['aim','g','adh','adhair','aimis','gí','aidís']},
+    slender: {pres:['im','ir','eann','idh','imid','teoir','id'], past:['eas','is','','igh','eamar','eabhar','eadar'], ph:['inn','teá','eadh','eadhair','imis','teois','idís'], fut:['ead','ir','idh','idhinn','imid','idhthí','id'], cond:['inn','feá','eadh','eadhair','imis','faithís','idís'], ps:['ead','ir','idh','idhne','imid','teoir','id'], pts:['inn','teá','eadh','eadhair','imis','teois','idís'], imp:['im','g','eadh','eadhair','imis','gí','idís']}
+};
+const P = ["1st Sing.", "2nd Sing.", "3rd Sing. M", "3rd Sing. F", "1st Plur.", "2nd Plur.", "3rd Plur."];
+
+function tgl() {
+    const el = document.documentElement;
+    const current = el.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    el.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+}
+
+function buildTbl(title, hdrs, rowsData) {
+    return `<h2>${title}</h2><table><thead><tr><th class="p-col">Person</th>${hdrs.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${P.map((p, i) => `<tr><td class="p-col">${p}</td>${rowsData.map(r => `<td>${r(i)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+
+function run(mode) {
+    const [r, lr, fr, cr] = ['r','lr','fr','cr'].map(id => document.getElementById(id).value.trim());
+    if(!r || !lr || !fr || !cr) return;
+    const e = E[mode];
+
+    document.getElementById('out').innerHTML = 
+        buildTbl("Indicative Mood", ["Present", "Past", "Past Habitual", "Future"], [
+            i => r + e.pres[i],
+            i => i === 2 ? lr : lr + e.past[i],
+            i => lr + e.ph[i],
+            i => fr + e.fut[i]
+        ]) + 
+        buildTbl("Other Moods", ["Conditional", "Pres Subjunctive", "Past Subjunctive", "Imperative"], [
+            i => i === 1 ? lr + e.cond[i] : i === 5 ? fr + (mode === 'broad' ? 'aidhthí' : 'idhthí') : cr + e.cond[i],
+            i => r + e.ps[i],
+            i => lr + e.pts[i],
+            i => i === 1 ? r : r + e.imp[i]
+        ]);
+}
+run('broad');
+</script>
+</body>
+</html>
