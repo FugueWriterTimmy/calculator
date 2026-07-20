@@ -38,20 +38,14 @@
     <div class="grid">
         <div>
             <label for="r">Verbal Root (e.g., mol, cuir, glan, léigh)</label>
-            <input type="text" id="r" value="mol">
+            <input type="text" id="r" value="mol" oninput="run()">
         </div>
     </div>
     
-    <div style="display:flex; gap:10px;">
-        <button onclick="run('broad')">Broad Conjugation</button>
-        <button onclick="run('slender')">Slender Conjugation</button>
-    </div>
-
     <div id="out"></div>
 </div>
 
 <script>
-// Authentic, unambiguous, non-overlapping historical suffix maps
 const E = {
     broad: {
         pres: ['aim', 'air', 'ann', 'aidh', 'aimid', 'taoi', 'aid'],
@@ -59,7 +53,7 @@ const E = {
         ph:   ['ainn', 'tá', 'adh', 'adhair', 'aimis', 'taois', 'aidís'],
         fut:  ['fad', 'fair', 'faidh', 'faidh', 'faimid', 'fthí', 'faid'],
         cond: ['fainn', 'fá', 'fadh', 'fadh', 'faimis', 'faithís', 'faidís'],
-        psub: ['as', 'asair', 'asann', 'asaidh', 'asmid', 'asbha', 'asaid'], // Unambiguous Old Irish Absolute Subjunctive extensions
+        psub: ['as', 'asair', 'asann', 'asaidh', 'asmid', 'asbha', 'asaid'],
         pastSub: ['ainn', 'tá', 'adh', 'adh', 'aimis', 'taois', 'aidís'],
         imp:  ['aim', 'g', 'adh', 'adhair', 'aimis', 'gí', 'aidís']
     },
@@ -82,15 +76,21 @@ function tgl() {
     el.setAttribute('data-theme', el.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
 }
 
-// Programmatic Morphological Mutation Engine
+function autoDetectMode(root) {
+    const vowels = root.match(/[aeiouáéíóú]/gi);
+    if (!vowels) return 'broad';
+    const lastVowel = vowels[vowels.length - 1].toLowerCase();
+    return ['e', 'i', 'é', 'í'].includes(lastVowel) ? 'slender' : 'broad';
+}
+
 function lenite(word) {
     const map = { b:'bh', c:'ch', d:'dh', f:'fh', g:'gh', m:'mh', p:'ph', s:'sh', t:'th', B:'Bh', C:'Ch', D:'Dh', F:'Fh', G:'Gh', M:'Mh', P:'Ph', S:'Sh', T:'Th' };
-    return map[word[0]] ? map[word[0]] + word.slice(1) : word;
+    return map[word] ? map[word] + word.slice(1) : word;
 }
 
 function eclipse(word) {
     const map = { b:'mb', c:'gc', d:'nd', f:'bhf', g:'ng', p:'bp', t:'dt', m:'mm', B:'Mb', C:'Gc', D:'Nd', F:'Bhf', G:'Ng', P:'Bp', T:'Dt', M:'Mm' };
-    return map[word[0]] ? map[word[0]] + word.slice(1) : word;
+    return map[word] ? map[word] + word.slice(1) : word;
 }
 
 function buildTbl(title, hdrs, rowsData) {
@@ -98,15 +98,17 @@ function buildTbl(title, hdrs, rowsData) {
     <tbody>${P.map((p, i) => `<tr><td class="p-col">${p}</td>${rowsData.map(r => `<td>${r(i)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 }
 
-function run(mode) {
+function run() {
     const r = document.getElementById('r').value.trim();
     if(!r) return;
     
+    const mode = autoDetectMode(r);
     const lr = lenite(r);
     const er = eclipse(r);
     const e = E[mode];
 
     document.getElementById('out').innerHTML = 
+        `<p style="font-size:0.9em; font-style:italic;">Detected Alignment: <strong>${mode.toUpperCase()}</strong></p>` +
         buildTbl("Indicative Mood", ["Present", "Past", "Past Habitual", "Future"], [
             i => r + e.pres[i],
             i => i === 2 ? lr : lr + e.past[i],
@@ -115,12 +117,12 @@ function run(mode) {
         ]) + 
         buildTbl("Other Moods", ["Conditional", "Present Subjunctive", "Past Subjunctive", "Imperative"], [
             i => lr + e.cond[i],
-            i => er + e.psub[i], // Dynamic internal eclipsis distinguishes Present Subjunctive
-            i => er + e.pastSub[i], // Dynamic internal eclipsis distinguishes Past Subjunctive from Habitual
+            i => er + e.psub[i], 
+            i => er + e.pastSub[i], 
             i => i === 1 ? r : r + e.imp[i]
         ]);
 }
-run('broad');
+run();
 </script>
 </body>
 </html>
