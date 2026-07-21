@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pseudo-German Verb Conjugator</title>
+    <style>
+        :root { --bg: #fff; --txt: #202122; --brd: #a2a9b1; --hdr: #eaecf0; --th: #f8f9fa; --btn: #3366cc; }
+        [data-theme="dark"] { --bg: #101418; --txt: #e0e4e8; --brd: #444d56; --hdr: #1f242c; --th: #161b22; --btn: #2188ff; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--txt); padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--brd); padding-bottom: 10px; margin-bottom: 20px; }
+        h1 { font-size: 1.6rem; margin: 0; font-family: serif; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        input, select { padding: 6px; border: 1px solid var(--brd); background: var(--bg); color: var(--txt); }
+        button { padding: 6px 12px; background: var(--btn); color: #fff; border: none; cursor: pointer; font-weight: bold; }
+        .toggle-btn { background: transparent; border: 1px solid var(--brd); color: var(--txt); }
+        .wiki-table { border: 1px solid var(--brd); border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+        .wiki-table th, .wiki-table td { border: 1px solid var(--brd); padding: 6px 8px; text-align: left; }
+        .wiki-table th { background: var(--th); }
+        .wiki-table .nav-header { background: var(--hdr); text-align: center; font-size: 1.1rem; }
+        .hidden { display: none !important; }
+        .suffix { color: inherit !important; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Pseudo-German Verb Conjugator</h1>
+        <button class="toggle-btn" onclick="const d=document.documentElement; d.setAttribute('data-theme', d.getAttribute('data-theme')==='dark'?'light':'dark')">Dark Mode</button>
+    </header>
+
+    <div class="controls">
+        <select id="verbType" onchange="document.getElementById('strongStems').classList.toggle('hidden', this.value!=='strong')">
+            <option value="weak">Weak Verb</option>
+            <option value="strong">Strong Verb</option>
+        </select>
+        <input type="text" id="rootPres" placeholder="Present Root">
+        <span id="strongStems" class="hidden"><input type="text" id="rootPret" placeholder="Preterite Root" style="width:130px;"></span>
+        <button onclick="conjugate()">Conjugate</button>
+    </div>
+
+    <table class="wiki-table">
+        <thead>
+            <tr><th colspan="7" class="nav-header">Conjugation of <span id="tableTitle">-</span></th></tr>
+            <tr><th>Person</th><th>Present</th><th>Preterite</th><th>Perfect</th><th>Pluperfect</th><th>Future</th><th>Imperative</th></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    function conjugate() {
+        const type = document.getElementById('verbType').value;
+        const pres = document.getElementById('rootPres').value.trim().toLowerCase();
+        let pret = document.getElementById('rootPret').value.trim().toLowerCase();
+        if (!pres) return;
+        if (type === 'weak' || !pret) pret = pres;
+
+        document.getElementById('tableTitle').textContent = pres;
+        const isDent = (r) => r.endsWith('d') || r.endsWith('t'), dPres = isDent(pres), dPret = isDent(pret);
+        const endsVow = ['a','e','i','o','u'].includes(pres.slice(-1));
+
+        const endings = [
+            { p: "ich",       pres: endsVow?"":"e", pret: "te",   perf: (dPres?"id":"d")+"e",   plup: (dPret?"idet":"det")+"e",   fut: "ere",   imp: "—" },
+            { p: "du",        pres: "st",            pret: "test", perf: (dPres?"id":"d")+"est",  plup: (dPret?"idet":"det")+"st",  fut: "erst",  imp: "st!" },
+            { p: "er/sie/es", pres: "t",             pret: "tet",  perf: (dPres?"id":"d")+"et",   plup: (dPret?"idet":"det")+"t",   fut: "ert",   imp: "—" },
+            { p: "wir",       pres: "ma",            pret: "tema", perf: (dPres?"id":"d")+"ma",  plup: (dPret?"idet":"det")+"ma",  fut: "erma",  imp: "ma!" },
+            { p: "ihr",       pres: "ts",            pret: "tets", perf: (dPres?"id":"d")+"ets",  plup: (dPret?"idet":"det")+"ts",  fut: "erts",  imp: "ts!" },
+            { p: "sie/Sie",   pres: "en",           pret: "ten",perf: (dPres?"id":"d")+"en", plup: (dPret?"idet":"det")+"en", fut: "ern", imp: "en!" }
+        ];
+
+        document.getElementById('tableBody').innerHTML = endings.map(e => `
+            <tr>
+                <th>${e.p}</th>
+                <td>${pres}<span class="suffix">${e.pres}</span></td>
+                <td>${pret}<span class="suffix">${type==='strong'?e.pret.replace(/^t/, ''):e.pret}</span></td>
+                <td>${pres}<span class="suffix">${e.perf}</span></td>
+                <td>${pret}<span class="suffix">${e.plup}</span></td>
+                <td>${pres}<span class="suffix">${e.fut}</span></td>
+                <td>${e.imp==='—'?'—':pres+`<span class="suffix">${e.imp}</span>`}</td>
+            </tr>
+        `).join('');
+    }
+    document.getElementById('rootPres').value = 'mach'; conjugate();
+</script>
+</body>
+</html>
