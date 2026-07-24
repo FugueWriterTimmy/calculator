@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Armenian Structural Translator</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: #1e293b; padding: 20px; border-radius: 12px; width: 600px; border: 1px solid #334155; box-sizing: border-box; }
+        h1 { margin: 0 0 5px 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; color: #38bdf8; text-align: center; font-weight: bold; }
+        p.sub { text-align: center; font-size: 0.75rem; color: #94a3b8; margin: 0 0 15px 0; }
+        .row { display: flex; gap: 10px; margin-bottom: 12px; }
+        input, select, button { width: 100%; background: #020617; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; box-sizing: border-box; font-size: 0.85rem; }
+        input:focus, select:focus { border-color: #38bdf8; outline: none; }
+        button { background: #0284c7; font-weight: bold; cursor: pointer; border: none; text-transform: uppercase; margin-top: 5px; padding: 12px; }
+        button:hover { background: #0369a1; }
+        #out { margin-top: 15px; padding: 12px; background: #020617; border-radius: 8px; border: 1px solid #334155; display: none; }
+        #w { font-size: 2rem; margin: 0; color: #34d399; font-weight: 900; letter-spacing: 0.5px; }
+        #m { font-style: italic; color: #94a3b8; margin: 5px 0 0 0; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Armenian Structural Translator</h1>
+        <p class="sub">Direct conceptual pairing between English concepts and native Armenian affixes</p>
+        <div class="row">
+            <input id="root" value="գիր" placeholder="Root (e.g., գիր, գործ, բան, տուն)">
+            <input id="mean" value="write/letter" placeholder="Root Meaning (e.g., write, work, word, house)">
+        </div>
+        <div class="row">
+            <select id="p1"><option value="">[English Prefix ➔ Armenian Equivalent]</option></select>
+            <select id="suf"><option value="">[English Suffix ➔ Armenian Equivalent]</option></select>
+        </div>
+        <button onclick="derive()">Translate & Derive</button>
+        <div id="out"><h2 id="w"></h2><p id="m"></p></div>
+    </div>
+
+    <script>
+        // Native Armenian prefixes paired with their precise English structural definitions
+        const P = [
+            {en:"un- / dis- / non- (negation) ➔ ան", ru:"ան", m:"without/un-"},
+            {en:"mis- / bad- / mal- (pejorative) ➔ դժ", ru:"դժ", m:"bad/difficult"},
+            {en:"sub- / under- / hypo- ➔ ստոր", ru:"ստոր", m:"under"},
+            {en:"over- / super- / hyper- ➔ գեր", ru:"գեր", m:"excessive"},
+            {en:"co- / con- / sym- (together / joint) ➔ համ", ru:"համ", m:"co-/together"},
+            {en:"re- / back- / counter- ➔ հակ", ru:"հակ", m:"anti/counter"},
+            {en:"pre- / fore- / pro- ➔ նախ", ru:"նախ", m:"pre-/before"},
+            {en:"inter- / mid- / meso- ➔ միջ", ru:"միջ", m:"inter/mid"},
+            {en:"trans- / cross- / para- ➔ փոխ", ru:"փոխ", m:"cross/mutual"},
+            {en:"circum- / peri- / around ➔ արտ", ru:"արտ", m:"outward/external"},
+            {en:"apo- / away / separate ➔ բաց", ru:"բաց", m:"open/out"},
+            {en:"omni- / pan- / all ➔ համա", ru:"համա", m:"all-encompassing"}
+        ];
+
+        // Native Armenian suffixes paired with their precise English structural definitions
+        const S = [
+            // --- ABSTRACT NOUNS & STATUS CONVERTERS ---
+            {en:"-tion / -hood / -ness / -ity (Abstract Noun) ➔ ություն", ru:"ություն", m:"abstract state", syncope:1},
+            {en:"-ment / -ing / -ance (Action Process) ➔ ում", ru:"ում", m:"process", syncope:1},
+            {en:"-ship / -dom / -collection (Collective Noun) ➔ եղեն", ru:"եղեն", m:"collective items"},
+            
+            // --- AGENTS, DOERS, AND DEVICES ---
+            {en:"-er / -or / -ist / -ant (Active Agent Doer) ➔ արար", ru:"արար", m:"doer"},
+            {en:"-er / -ist (Professional Operator / Specialist) ➔ ագետ", ru:"ագետ", m:"expert specialist"},
+            {en:"-er / -keeper (Occupational / Affiliation) ➔ պան", ru:"պան", m:"guardian/keeper"},
+            {en:"-er / -person (Object possessor / Associated person) ➔ ավոր", ru:"ավոր", m:"bearing/holding"},
+            {en:"-er / -maker (Craftsman / Constructor) ➔ գործ", ru:"գործ", m:"maker/worker"},
+            
+            // --- LOCATIONS AND PLACE CONVERTERS ---
+            {en:"-land / -ery / -ory / -ia (Geographic Territory) ➔ աստան", ru:"աստան", m:"land/country"},
+            {en:"-arium / -ory / -box / -room (Venue / Place for) ➔ արան", ru:"արան", m:"place for/venue"},
+            {en:"-house / -home / -container ➔ տուն", ru:"տուն", m:"house structure"},
+            {en:"-plantation / -garden / -patch ➔ ոց", ru:"ոց", m:"plantation location"},
+            
+            // --- ADJECTIVAL CONVERTERS ---
+            {en:"-ic / -al / -ish / -ian (Relational Adjective) ➔ ական", ru:"ական", m:"relational"},
+            {en:"-ed / -ful / -y (Characterized by / Full of) ➔ ալի", ru:"ալի", m:"possessing trait"},
+            {en:"-ive / -ous / -able (Active potential state) ➔ ուն", ru:"ուն", m:"active property"},
+            {en:"-less / -free (Privative adjective) ➔ ազատ", ru:"ազատ", m:"free from"},
+            
+            // --- PLURALS & MODIFIERS ---
+            {en:"-plural / -s (Standard Plural ending) ➔ ներ", ru:"ներ", m:"plural"},
+            {en:"-ly (Adverbial modifier / Manner format) ➔ բար", ru:"բար", m:"adverbial"}
+        ];
+
+        const p1Sel = document.getElementById('p1'), sSel = document.getElementById('suf');
+
+        P.forEach(p => { p1Sel.add(new Option(p.en, p.ru)); });
+        S.forEach(s => {
+            let o = new Option(s.en, s.ru); if(s.syncope) o.dataset.syncope = 1; sSel.add(o);
+        });
+
+        function derive() {
+            let r = document.getElementById('root').value.trim();
+            let rm = document.getElementById('mean').value.trim();
+            
+            let pOpt = p1Sel.options[p1Sel.selectedIndex];
+            let sOpt = sSel.options[sSel.selectedIndex];
+            
+            let p = pOpt.value;
+            let s = sOpt.value;
+
+            if(!r) return alert("Enter root");
+
+            // --- ARMENIAN VOWEL SYNCOPE RULES (Անկումային Հնչյունափոխություն) ---
+            // Armenian operates a strict rule where high internal vowels "ի" (i) or "ու" (u) 
+            // regularly shrink, morph to "ը" (unwritten schwa), or drop completely when 
+            // a heavy multi-syllable abstract suffix (like -ություն or -ում) shifts the stress.
+            if (sOpt.dataset.syncope) {
+                // If final syllable containing internal vowel sequence is matched, trigger shift
+                if (r.endsWith("իր")) {
+                    r = r.slice(0, -2) + "ր"; // e.g., գիր (gir) -> գրություն (grootiun)
+                } else if (r.endsWith("ուր")) {
+                    r = r.slice(0, -3) + "ր"; // e.g., ջուր (joor) -> ջրային (jrayin)
+                }
+            }
+
+            // Standard compounding combination without lingering hyphens
+            let word = p + r + s;
+
+            // Find matching data nodes safely
+            let pData = P.find(item => item.ru === p);
+            let sData = S.find(item => item.ru === s);
+
+            document.getElementById('w').innerText = word;
+            document.getElementById('m').innerText = [(pData ? pData.m : ''), rm ? `"${rm}"` : '', (sData ? sData.m : '')].filter(Boolean).map(x => `[${x}]`).join(' + ');
+            document.getElementById('out').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
