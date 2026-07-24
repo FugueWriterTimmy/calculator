@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Georgian Structural Translator</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: #1e293b; padding: 20px; border-radius: 12px; width: 600px; border: 1px solid #334155; box-sizing: border-box; }
+        h1 { margin: 0 0 5px 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; color: #ef4444; text-align: center; font-weight: bold; }
+        p.sub { text-align: center; font-size: 0.75rem; color: #94a3b8; margin: 0 0 15px 0; }
+        .row { display: flex; gap: 10px; margin-bottom: 12px; }
+        input, select, button { width: 100%; background: #020617; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; box-sizing: border-box; font-size: 0.85rem; }
+        input:focus, select:focus { border-color: #ef4444; outline: none; }
+        button { background: #dc2626; font-weight: bold; cursor: pointer; border: none; text-transform: uppercase; margin-top: 5px; padding: 12px; }
+        button:hover { background: #991b1b; }
+        #out { margin-top: 15px; padding: 12px; background: #020617; border-radius: 8px; border: 1px solid #334155; display: none; }
+        #w { font-size: 2rem; margin: 0; color: #34d399; font-weight: 900; letter-spacing: 0.5px; }
+        #m { font-style: italic; color: #94a3b8; margin: 5px 0 0 0; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Georgian Structural Translator</h1>
+        <p class="sub">Direct conceptual pairing between English and native Kartvelian affixes</p>
+        <div class="row">
+            <input id="root" value="თარგმნ" placeholder="Root (e.g., თარგმნ, შენ, ლამაზ, სახლ)">
+            <input id="mean" value="translate" placeholder="Root Meaning (e.g., translate, build)">
+        </div>
+        <div class="row">
+            <select id="p1"><option value="">[English Prefix ➔ Georgian Equivalent]</option></select>
+            <select id="suf"><option value="">[English Suffix ➔ Georgian Equivalent]</option></select>
+        </div>
+        <button onclick="derive()">Translate & Derive</button>
+        <div id="out"><h2 id="w"></h2><p id="m"></p></div>
+    </div>
+
+    <script>
+        // Prefixes explicitly paired with their precise English structural definitions
+        const P = [
+            // --- DIRECTIONAL & ASPECTUAL PREVERBS ---
+            {en:"out- / ex- (away from center) ➔ გა", ru:"გა", m:"outward"},
+            {en:"out- / ex- (outward towards speaker) ➔ გამო", ru:"გამო", m:"outward-hither"},
+            {en:"in- / en- / intra- (into an interior) ➔ შე", ru:"შე", m:"into"},
+            {en:"in- / en- / intra- (interior towards speaker) ➔ შემო", ru:"შემო", m:"into-hither"},
+            {en:"up- / supra- / an- (upward motion) ➔ ა", ru:"ა", m:"upward"},
+            {en:"up- / supra- / an- (upward towards speaker) ➔ ამო", ru:"ამო", m:"upward-hither"},
+            {en:"down- / de- / cata- (downward motion) ➔ ჩა", ru:"ჩა", m:"downward"},
+            {en:"down- / de- / cata- (downward towards speaker) ➔ ჩამო", ru:"ჩამო", m:"downward-hither"},
+            {en:"away / dis- / ab- (perfective / completely off) ➔ და", ru:"და", m:"away/disperse"},
+            {en:"off- / forth- / away from a point ➔ წა", ru:"წა", m:"away-from"},
+            {en:"forth- / forward towards speaker ➔ წამო", ru:"წამო", m:"away-hither"},
+            {en:"across- / trans- / over (overcoming obstacle) ➔ გადა", ru:"გადა", m:"across"},
+            {en:"across- / trans- / over (across towards speaker) ➔ გადმო", ru:"გადმო", m:"across-hither"},
+            {en:"hither- / cis- (statically towards speaker) ➔ მო", ru:"მო", m:"hither"},
+            {en:"thither- / trans- (statically away from speaker) ➔ მი", ru:"მი", m:"thither"},
+            
+            // --- STRUCTURAL NOMINAL / ADJECTIVAL PREFIXES ---
+            {en:"pro- / para- / object placeholder (designated tool) ➔ სა", ru:"სა", m:"designated for"},
+            {en:"abstract quality builder (forms '-ness' nouns) ➔ სი", ru:"სი", m:"state of"},
+            {en:"un- / dis- / -less (devoid of / without) ➔ უ", ru:"უ", m:"without"},
+            {en:"co- / con- / sym- (companion / joint association) ➔ თა", ru:"თა", m:"together with"},
+            {en:"active agent maker (occupational identifier) ➔ მე", ru:"მე", m:"agent"}
+        ];
+
+        // Suffixes explicitly paired with their precise English structural definitions
+        const S = [
+            // --- ABSTRACT NOUN CONVERTERS ---
+            {en:"-tion / -ment / -ing (Action Process Noun) ➔ ა", ru:"ა", m:"action", trunc:1},
+            {en:"-tion / -ation (Systematic / Institutional Action) ➔ ება", ru:"ება", m:"systematic act", trunc:1},
+            {en:"-hood / -ship / -dom / -ity (Collective State / Status) ➔ ობა", ru:"ობა", m:"condition/status", trunc:1},
+            {en:"-ness / -ity / -th (Abstract Quality Noun marker) ➔ ე", ru:"ე", m:"trait quality", trunc:1},
+            
+            // --- AGENT, TOOL, LOCATION AND ORIGIN CONVERTERS ---
+            {en:"-er / -or / -ist / -ant (Occupational Doer / Resident) ➔ ელი", ru:"ელი", m:"doer agent", trunc:1},
+            {en:"-land / -ery / -ory / -ia (Geographic Territory) ➔ ეთი", ru:"ეთი", m:"location/land", trunc:1},
+            {en:"-arium / -ory / -box / -room (Venue / Container) ➔ ო", ru:"ო", m:"venue/container", trunc:1},
+            {en:"-descendant / -child (Lineage marker) ➔ შვილი", ru:"შვილი", m:"descendant"},
+            {en:"-descendant / -son (Lineage marker) ➔ ძე", ru:"ძე", m:"son of"},
+            {en:"-plural / -s (Plural marker) ➔ ები", ru:"ები", m:"plural", trunc:1},
+            
+            // --- ADJECTIVAL CONVERTERS ---
+            {en:"-ic / -al / -ish / -ian (Relational form / Language) ➔ ული", ru:"ული", m:"style/tongue", trunc:1},
+            {en:"-ed / -ful / -y (Characterized by / Possessing trait) ➔ იანი", ru:"იანი", m:"possessing", trunc:1},
+            {en:"-ive / -talented / -ous (Active internal quality) ➔ იერი", ru:"იერი", m:"imbued with", trunc:1},
+            {en:"-able / -ible / -less (Passive structural state) ➔ ო", ru:"ო", m:"potentiality", trunc:1},
+            
+            // --- CASE ENDINGS AND ADVERBIALS ---
+            {en:"-ly (Adverbial modifier / into a functional role) ➔ ად", ru:"ად", m:"adverbial"},
+            {en:"-by / -with / -using (Instrumental case) ➔ ით", ru:"ით", m:"instrumental"}
+        ];
+
+        const p1Sel = document.getElementById('p1'), sSel = document.getElementById('suf');
+
+        P.forEach(p => { p1Sel.add(new Option(p.en, p.ru)); });
+        S.forEach(s => {
+            let o = new Option(s.en, s.ru); if(s.trunc) o.dataset.trunc = 1; sSel.add(o);
+        });
+
+        function derive() {
+            let r = document.getElementById('root').value.trim();
+            let rm = document.getElementById('mean').value.trim();
+            
+            let pOpt = p1Sel.options[p1Sel.selectedIndex];
+            let sOpt = sSel.options[sSel.selectedIndex];
+            
+            let p = pOpt.value;
+            let s = sOpt.value;
+
+            if(!r) return alert("Enter root");
+
+            // Apply Kartvelian stem vowel truncation (syncope) before vowel suffixes
+            if (sOpt.dataset.trunc) {
+                let last = r.slice(-1);
+                if (['ი', 'ა', 'ე'].includes(last)) {
+                    r = r.slice(0, -1);
+                }
+            }
+
+            // Clean string combination - absolutely zero hyphens leaking into the visual result
+            let word = p + r + s;
+
+            // Restore absolute nominative terminal marker '-ი' if it ends in a bare consonant
+            if (!['ი','ა','ე','ო','უ'].includes(word.slice(-1))) {
+                word += 'ი';
+            }
+
+            // Find match metadata safely
+            let pData = P.find(item => item.ru === p);
+            let sData = S.find(item => item.ru === s);
+
+            document.getElementById('w').innerText = word;
+            document.getElementById('m').innerText = [(pData ? pData.m : ''), rm ? `"${rm}"` : '', (sData ? sData.m : '')].filter(Boolean).map(x => `[${x}]`).join(' + ');
+            document.getElementById('out').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
