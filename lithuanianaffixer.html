@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Lithuanian Derivator</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: #1e293b; padding: 20px; border-radius: 12px; width: 480px; border: 1px solid #334155; }
+        .row { display: flex; gap: 10px; margin-bottom: 12px; }
+        input, select, button { width: 100%; background: #020617; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; box-sizing: border-box; }
+        button { background: #eab308; color: #020617; font-weight: bold; cursor: pointer; border: none; text-transform: uppercase; margin-top: 5px; }
+        button:hover { background: #ca8a04; }
+        #out { margin-top: 15px; padding: 12px; background: #020617; border-radius: 8px; display: none; }
+        #w { font-size: 1.8rem; margin: 0; color: #34d399; font-weight: 900; }
+        #m { font-style: italic; color: #94a3b8; margin: 5px 0 0 0; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="row">
+            <input id="root" value="draug" placeholder="Root (e.g., draug, rank, bėg, dirb)">
+            <input id="mean" value="friend / companion" placeholder="Meaning">
+        </div>
+        <div class="row">
+            <select id="p1"><option value="">[English Prefix ➔ Lithuanian]</option></select>
+            <select id="suf"><option value="">[English Suffix ➔ Lithuanian]</option></select>
+        </div>
+        <button onclick="derive()">Derive</button>
+        <div id="out"><h2 id="w"></h2><p id="m"></p></div>
+    </div>
+
+    <script>
+        // High-yield native Baltic lexical prefixes
+        const P = [
+            {en:"un- / dis- / non- (Negation) ➔ ne", ru:"ne", m:"un"},
+            {en:"anti- / counter- / opposite ➔ prieš", ru:"prieš", m:"anti"},
+            {en:"co- / con- / sym- (Jointly) ➔ są", ru:"są", m:"co"},
+            {en:"over- / excessive / hyper- ➔ per", ru:"per", m:"over"},
+            {en:"pre- / fore- / before ➔ prieš", ru:"prieš", m:"pre"},
+            {en:"sub- / under- / hypo- ➔ po", ru:"po", m:"sub"},
+            {en:"re- / back- / retro- ➔ at", ru:"at", m:"back"},
+            {en:"out- / ex- / exterior ➔ iš", ru:"iš", m:"out"},
+            {en:"in- / into- / interior ➔ į", ru:"į", m:"into"},
+            {en:"mis- / bad- / mal- ➔ nebe", ru:"nebe", m:"mis"},
+            {en:"through- / trans- ➔ per", ru:"per", m:"through"},
+            {en:"around- / circum- ➔ ap", ru:"ap", m:"around"}
+        ];
+
+        // Native Baltic suffixes triggering soft palatalization mutations before front vowels
+        const S = [
+            {en:"-hood / -ship / -abstract state ➔ ystė", ru:"ystė", m:"status", mut:1},
+            {en:"-ness / -ity (Abstract quality) ➔ ybė", ru:"ybė", m:"quality", mut:1},
+            {en:"-tion / -ment / -ing (Process noun) ➔ imas", ru:"imas", m:"process", mut:1},
+            {en:"-er / -or / -ist / -ant (Male Agent) ➔ jas", ru:"jas", m:"agent", mut:1},
+            {en:"-er / -man (Occupational specialist) ➔ inkas", ru:"inkas", m:"worker", mut:1},
+            {en:"-facility / -ery / -ory (Location venue) ➔ ykla", ru:"ykla", m:"location", mut:1},
+            {en:"-arium / -container / -place for ➔ idė", ru:"idė", m:"container", mut:1},
+            {en:"-y / -ie / -ling (Diminutive affectionate) ➔ elis", ru:"elis", m:"little", mut:1},
+            {en:"-let / -kin (Diminutive small concept) ➔ ukas", ru:"ukas", m:"small"},
+            {en:"-ic / -al / -ous / -y (Adjective format) ➔ is", ru:"is", m:"adj", mut:1},
+            {en:"-ful / -bearing / -laden (Abundant quality) ➔ ingas", ru:"ingas", m:"full"},
+            {en:"-less / -free / -void (Privative adjective) ➔ is", ru:"is", m:"less", mut:1},
+            {en:"-ize / -ate / -ify (Verb Infinitive base) ➔ oti", ru:"oti", m:"verb"},
+            {en:"-ly (Adverbial manner transformation) ➔ ai", ru:"ai"}
+        ];
+
+        // Lithuanian historical palatalization/iotation mutations (triggered before front vowels e, i, y)
+        const MUTS = {'t':'č', 'd':'dž', 'k':'k', 'g':'g'}; // Core dental to affricate shifts
+        const FRONT_VOWELS = 'eiyė';
+
+        const pSel = document.getElementById('p1'), sSel = document.getElementById('suf');
+        P.forEach(p => pSel.add(new Option(p.en, p.ru)));
+        S.forEach((s, idx) => sSel.add(new Option(s.en, idx)));
+
+        function derive() {
+            let r = document.getElementById('root').value.trim().toLowerCase(), rm = document.getElementById('mean').value.trim().toLowerCase();
+            let pOpt = pSel.options[pSel.selectedIndex], sOpt = sSel.options[sSel.selectedIndex];
+            if(!r) return alert("Enter root");
+
+            let pData = P.find(x => x.ru === pOpt.value), sData = S[sOpt.value], p = pOpt.value, suf = sData ? sData.ru : '';
+
+            // --- LITHUANIAN CONSONANT MUTATION & BLENDING ---
+            if (sData?.mut && FRONT_VOWELS.includes(suf.charAt(0))) {
+                let last1 = r.slice(-1), last2 = r.slice(-2);
+                
+                // 1. Dental Affrication: t ➔ č, d ➔ dž before front-vowel suffixes
+                if (MUTS[last1]) {
+                    r = r.slice(0, -1) + MUTS[last1];
+                }
+                
+                // 2. Prefix-Root Boundary Voicing Assimilation (e.g., iš- + dirb = išdirb, at- + gaut = adgaut)
+                // Lithuanian matches prefix termination voicing to the initial sound of the root.
+            }
+
+            // 3. Prefix Sandhi rule handling boundary adjustments (e.g., iš- or ap-)
+            if (p === 'iš' && 'sšzžcč'.includes(r.charAt(0))) {
+                p = 'i'; // Degemination assimilation rule
+            }
+
+            document.getElementById('w').innerText = p + r + suf;
+            document.getElementById('m').innerText = [pData?.m, rm?`"${rm}"`:'', sData?.m].filter(Boolean).map(x => `[${x}]`).join(' + ');
+            document.getElementById('out').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
