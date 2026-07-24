@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Russian Compound Derivator</title>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { background: #1e293b; padding: 20px; border-radius: 12px; width: 550px; border: 1px solid #334155; }
+        .row { display: flex; gap: 10px; margin-bottom: 12px; }
+        input, select, button { width: 100%; background: #020617; border: 1px solid #475569; color: #fff; padding: 10px; border-radius: 6px; box-sizing: border-box; }
+        input:focus, select:focus { border-color: #f59e0b; outline: none; }
+        label { display: block; font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: bold; margin-bottom: 4px; }
+        .field { flex: 1; }
+        button { background: #d97706; font-weight: bold; cursor: pointer; border: none; text-transform: uppercase; margin-top: 5px; }
+        #out { margin-top: 15px; padding: 12px; background: #020617; border-radius: 8px; border: 1px solid #334155; display: none; }
+        #w { font-size: 1.8rem; margin: 0; color: #34d399; font-weight: 900; }
+        #m { font-style: italic; color: #94a3b8; margin: 5px 0 0 0; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="row">
+            <div class="field">
+                <label>1st Compound Base (Optional)</label>
+                <input id="comp" value="" placeholder="e.g., вода, сам, земля">
+            </div>
+            <div class="field">
+                <label>1st Base Meaning</label>
+                <input id="compMean" value="" placeholder="e.g., water, self">
+            </div>
+        </div>
+        <div class="row">
+            <div class="field">
+                <label>Main Slavic Root</label>
+                <input id="root" value="друг" placeholder="Root (Cyrillic)">
+            </div>
+            <div class="field">
+                <label>Main Root Meaning</label>
+                <input id="mean" value="friend" placeholder="Meaning">
+            </div>
+        </div>
+        <div class="row">
+            <div class="field">
+                <label>English Prefix</label>
+                <select id="p1"><option value="">[None]</option></select>
+            </div>
+            <div class="field">
+                <label>English Suffix</label>
+                <select id="suf"><option value="">[None]</option></select>
+            </div>
+        </div>
+        <button onclick="derive()">Derive Compound Word</button>
+        <div id="out"><h2 id="w"></h2><p id="m"></p></div>
+    </div>
+
+    <script>
+        const P = [
+            {en:"anti/counter- ➔ противо", ru:"противо", m:"opposition"},{en:"un/dis/de- ➔ раз", ru:"раз", m:"undo"},
+            {en:"without/-less ➔ без", ru:"без", m:"absence"},{en:"in/into- ➔ в", ru:"в", m:"into"},
+            {en:"out/ex- ➔ вы", ru:"вы", m:"out"},{en:"pre/fore- ➔ пред", ru:"пред", m:"before"},
+            {en:"over/re/trans- ➔ пере", ru:"пере", m:"across"},{en:"sub/under- ➔ под", ru:"под", m:"under"},
+            {en:"co/con/sym- ➔ со", ru:"со", m:"together"},{en:"non/not- ➔ не", ru:"не", m:"not"},
+            {en:"mis/underdone ➔ недо", ru:"недо", m:"insufficient"},{en:"upwards ➔ вз", ru:"вз", m:"up"},
+            {en:"up/rise ➔ воз", ru:"воз", m:"up/again"},{en:"until/finish ➔ до", ru:"до", m:"finish"},
+            {en:"from within ➔ из", ru:"из", m:"from"},{en:"onto/mass ➔ на", ru:"на", m:"onto"},
+            {en:"above/over- ➔ над", ru:"над", m:"above"},{en:"downwards ➔ низ", ru:"низ", m:"down"},
+            {en:"around ➔ о", ru:"о", m:"around"},{en:"about/circum- ➔ об", ru:"об", m:"about"},
+            {en:"away/off ➔ от", ru:"от", m:"off"},{en:"for a bit ➔ по", ru:"по", m:"bit"},
+            {en:"highly/super- ➔ пре", ru:"пре", m:"very"},{en:"through/past ➔ про", ru:"про", m:"through"},
+            {en:"down/together ➔ с", ru:"с", m:"down/with"},{en:"away/gone ➔ у", ru:"у", m:"away"}
+        ];
+
+        const S = [
+            {en:"-(a)tion/-ment ➔ ество", ru:"ество", m:"process", mut:1},{en:"-hood/-ship ➔ ство", ru:"ство", m:"status", mut:1},
+            {en:"-ness/-ity ➔ ость", ru:"ость", m:"quality"},{en:"-ing (noun) ➔ ие", ru:"ие", m:"action", mut:1},
+            {en:"-ing (state) ➔ ье", ru:"ье", m:"state", mut:1},{en:"-er/-or/-ist ➔ чик", ru:"чик", m:"agent", mut:1},
+            {en:"-person/-keeper ➔ ник", ru:"ник", m:"associated", mut:1},{en:"-er (doer) ➔ тель", ru:"тель", m:"doer"},
+            {en:"-ian/-er (type) ➔ ец", ru:"ец", m:"origin", mut:1},{en:"-guy/-holder ➔ ак", ru:"ак", m:"placeholder", mut:1},
+            {en:"-ing/-action ➔ ба", ru:"ба", m:"action"},{en:"-y/-ie (fem) ➔ ка", ru:"ка", m:"small", mut:1},
+            {en:"-ling/-kin (masc) ➔ ок", ru:"ок", m:"little", mut:1},{en:"-let/-ling (masc) ➔ ик", ru:"ик", m:"small"},
+            {en:"-dear/-precious ➔ ышко", ru:"ышко", m:"dear", mut:1},{en:"-al/-ic/-ous ➔ ный", ru:"ный", m:"adj", mut:1},
+            {en:"-ish/-ian ➔ ский", ru:"ский", m:"relational", mut:1},{en:"-ize/-ate ➔ овать", ru:"овать", m:"verb", mut:1},
+            {en:"-en/-make ➔ ить", ru:"ить", m:"cause", mut:1}, {en:"big ➔ ище", ru:"ище", m:"big"}
+        ];
+
+        const MUTS = {'г':'ж','з':'ж','д':'ж','к':'ч','ц':'ч','т':'ч','х':'ш','с':'ш','ск':'щ','ст':'щ','б':'бл','в':'вл','м':'мл','п':'пл'};
+        const UNVOICED = 'кпстфхцчшщ', SEVEN = 'кгхжчшщ', SOFT_CONSONANTS = 'чщйжшц';
+
+        const p1 = document.getElementById('p1'), sf = document.getElementById('suf');
+        P.forEach(p => p1.add(new Option(p.en, p.ru)));
+        S.forEach(s => { let o = new Option(s.en, s.ru); if(s.mut) o.dataset.mut = 1; sf.add(o); });
+
+        function derive() {
+            let compInput = document.getElementById('comp').value.trim().toLowerCase();
+            let compMean = document.getElementById('compMean').value.trim().toLowerCase();
+            let r = document.getElementById('root').value.trim().toLowerCase();
+            let rm = document.getElementById('mean').value.trim().toLowerCase();
+            let sOpt = sf.options[sf.selectedIndex], suf = sOpt.value, sm = sOpt.text;
+            
+            if(!r) return alert("Enter main root");
+
+            // --- COMPOUND BASE LOGIC ---
+            let combinedCompound = "";
+            if (compInput) {
+                // Strip inflectional nominal endings (а, я, о, е, и, ы) to find raw stem
+                let stem = compInput.replace(/[аяоеиы]$/, '');
+                
+                // Slavic Interfix Rule: Use '-е-' after soft consonants/sibilants, '-о-' after hard consonants
+                let lastChar = stem.slice(-1);
+                let interfix = (SOFT_CONSONANTS.includes(lastChar) || ['ь', 'й'].includes(compInput.slice(-1))) ? 'е' : 'о';
+                
+                // Clean final soft signs from the stem boundary before adding interfix
+                if (stem.endsWith('ь')) stem = stem.slice(0, -1);
+                
+                combinedCompound = stem + interfix;
+            }
+
+            // --- MORPHOLOGICAL PIPELINE ---
+            if (sOpt.dataset.mut) {
+                let m = MUTS[r.slice(-2)] || MUTS[r.slice(-1)];
+                if (m) r = r.slice(0, -(MUTS[r.slice(-2)] ? 2 : 1)) + m;
+            }
+            if (suf.includes('ы') && SEVEN.includes(r.slice(-1))) suf = suf.replace('ы', 'и');
+
+            let pOpt = p1.options[p1.selectedIndex], p = pOpt.value;
+            
+            // Voice assimilation applied to prefixes at the root boundary
+            let leadChar = r.charAt(0);
+            if (p.endsWith('з') && leadChar && UNVOICED.includes(leadChar)) {
+                p = p.slice(0,-1) + 'с';
+            }
+
+            // Compile absolute final word and display
+            document.getElementById('w').innerText = combinedCompound + p + r + suf;
+            document.getElementById('m').innerText = [compMean ? `[${compMean}]` : '', p ? `[prefix]` : '', rm ? `[${rm}]` : '', suf ? `[suffix]` : ''].filter(Boolean).join(' + ');
+            document.getElementById('out').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
