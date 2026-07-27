@@ -3,268 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Russian Cyrillic to Latin Converter</title>
+    <title>Russian to Latin Transliterator</title>
     <style>
-        /* Combined theme tokens to minimize redundancy */
-        :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
-            --border-color: #cbd5e1;
-            --label-color: #64748b;
-            --readonly-bg: #f1f5f9;
-        }
-
-        html.dark {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f8fafc;
-            --border-color: #475569;
-            --label-color: #94a3b8;
-            --readonly-bg: #334155;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.5;
-            margin: 0;
-            padding: 2rem 1rem;
-            display: flex;
-            justify-content: center;
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        .container {
-            width: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             max-width: 800px;
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: background-color 0.2s;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f4f7f6;
+            color: #333;
         }
-
-        .header-layout {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
         h1 {
-            font-size: 1.75rem;
-            margin: 0;
-            color: var(--text-color);
+            color: #2c3e50;
+            text-align: center;
         }
-
-        .theme-toggle-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 0.5rem;
+        .container {
+            background: #fff;
+            padding: 30px;
             border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        .theme-toggle-btn:hover {
-            background-color: var(--readonly-bg);
-        }
-
-        .converter-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        @media (min-width: 768px) {
-            .converter-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            position: relative;
-        }
-
-        label {
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--label-color);
-        }
-
         textarea {
             width: 100%;
-            height: 200px;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            resize: vertical;
+            height: 150px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             box-sizing: border-box;
-            outline: none;
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+            resize: vertical;
+            font-size: 16px;
+            margin-bottom: 20px;
         }
-
         textarea:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52,152,219,0.3);
         }
-
-        textarea[readonly] {
-            background-color: var(--readonly-bg);
-            cursor: not-allowed;
-        }
-
-        .btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            align-self: flex-end;
-            margin-top: 0.5rem;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .toast {
-            display: none;
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #334155;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            animation: fadeInOut 2s ease-in-out;
-        }
-
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, 1rem); }
-            15% { opacity: 1; transform: translate(-50%, 0); }
-            85% { opacity: 1; transform: translate(-50%, 0); }
-            100% { opacity: 0; transform: translate(-50%, -1rem); }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header-layout">
-            <h1>Russian Cyrillic ↔ Latin Converter</h1>
-            <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme">
-                <svg id="themeIcon" xmlns="http://w3.org" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
-            </button>
-        </div>
+<div class="container">
+    <h1>Russian to Latin Transliterator</h1>
+    
+    <label for="input">Russian Cyrillic Input:</label>
+    <textarea id="input" placeholder="Введите текст здесь..."></textarea>
+
+    <label for="output">Latin Output:</label>
+    <textarea id="output" readonly placeholder="Transliterated text will appear here..."></textarea>
+</div>
+
+<script>
+    const inputArea = document.getElementById('input');
+    const outputArea = document.getElementById('output');
+
+    // Base standard mapping dictionary
+    const baseMap = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ж': 'ž', 
+        'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 
+        'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 
+        'х': 'x', 'ц': 'c', 'ч': 'č', 'ш': 'š', 'щ': 'ś', 'ъ': '',  'ы': 'y', 
+        'ь': "'", 'э': 'è', 'ю': 'û', 'я': 'â', 'ё': 'ô',
         
-        <div class="converter-grid">
-            <div class="field-group">
-                <label for="cyrillicInput">Cyrillic Text (Русский)</label>
-                <textarea id="cyrillicInput" placeholder="Введите текст сюда..."></textarea>
-            </div>
+        'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ж': 'Ž', 
+        'З': 'Z', 'И': 'I', 'Й': 'J', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 
+        'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 
+        'Х': 'X', 'Ц': 'C', 'Ч': 'Č', 'Ш': 'Š', 'Щ': 'Ś', 'Ъ': '',  'Ы': 'Y', 
+        'Ь': "'", 'Э': 'È', 'Ю': 'Û', 'Я': 'Â', 'Ё': 'Ô'
+    };
 
-            <div class="field-group">
-                <label for="latinOutput">Latin Transliteration</label>
-                <textarea id="latinOutput" readonly placeholder="Transliteration appears here..."></textarea>
-                <button class="btn" id="copyBtn">Copy Text</button>
-            </div>
-        </div>
-    </div>
+    // Set of characters classified as vowels or signs triggering the 'j' rule
+    const triggers = new Set([
+        'а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я', 'ь', 'ъ',
+        'А', 'Е', 'Ё', 'И', 'О', 'У', 'Ы', 'Э', 'Ю', 'Я', 'Ь', 'Ъ'
+    ]);
 
-    <div class="toast" id="toast">Copied to clipboard!</div>
+    // Context-dependent rules for special letters (losing circumflex, gaining j)
+    const modifiedMap = {
+        'ё': 'jo', 'ю': 'ju', 'я': 'ja', 'э': 'je', 'е': 'je',
+        'Ё': 'Jo', 'Ю': 'Ju', 'Я': 'Ja', 'Э': 'Je', 'Е': 'Je'
+    };
 
-    <script>
-        // Transliteration dictionary mapping (Direct O(1) character lookup)
-        const mapping = {
-            'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'Je', 'Ё': 'Jo', 'Ж': 'Zh', 
-            'З': 'Z', 'И': 'I', 'Й': 'J', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 
-            'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts', 
-            'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '"', 'Ы': 'Y', 'Ь': "'", 'Э': 'E', 'Ю': 'Ju', 'Я': 'Ja',
-            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'je', 'ё': 'jo', 'ж': 'zh', 
-            'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 
-            'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 
-            'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '"', 'ы': 'y', 'ь': "'", 'э': 'e', 'ю': 'ju', 'я': 'ja'
-        };
+    // Helper to determine if a Cyrillic character is part of a word
+    function isCyrillicLetter(char) {
+        if (!char) return false;
+        return /[а-яё]/i.test(char);
+    }
 
-        // Cache DOM elements
-        const cyrillicInput = document.getElementById('cyrillicInput');
-        const latinOutput = document.getElementById('latinOutput');
-        const copyBtn = document.getElementById('copyBtn');
-        const toast = document.getElementById('toast');
-        const htmlElement = document.documentElement;
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        const themeIcon = document.getElementById('themeIcon');
+    function transliterate(text) {
+        let result = "";
+        
+        for (let i = 0; i < text.length; i++) {
+            let current = text[i];
+            let previous = i > 0 ? text[i - 1] : null;
 
-        // Optimized inline icon strings
-        const sunSvg = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>';
-        const moonSvg = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>';
+            // Check if current character is one of the special characters (е, ё, э, ю, я)
+            if (modifiedMap[current] !== undefined) {
+                let isStartOfWord = !previous || !isCyrillicLetter(previous);
+                let isAfterTrigger = previous && triggers.has(previous);
 
-        // Single assignment helper for theme icon state
-        const updateIcon = isDark => themeIcon.innerHTML = isDark ? sunSvg : moonSvg;
-
-        // Unified layout state setup
-        const isDarkMode = localStorage.getItem('theme') === 'dark' || 
-            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-        htmlElement.classList.toggle('dark', isDarkMode);
-        updateIcon(isDarkMode);
-
-        // Click interaction logic to toggle views
-        themeToggleBtn.addEventListener('click', () => {
-            const currentIsDark = htmlElement.classList.toggle('dark');
-            localStorage.setItem('theme', currentIsDark ? 'dark' : 'light');
-            updateIcon(currentIsDark);
-        });
-
-        // Fast replacement loop using regex character class matching
-        function transliterate(text) {
-            return text.replace(/[А-яЁёЪъЬь]/g, char => mapping[char] ?? char);
+                if (isStartOfWord || isAfterTrigger) {
+                    result += modifiedMap[current];
+                } else {
+                    result += baseMap[current];
+                }
+            } else if (baseMap[current] !== undefined) {
+                result += baseMap[current];
+            } else {
+                result += current; // Keep spaces, punctuation, numbers intact
+            }
         }
+        return result;
+    }
 
-        // Live input conversion listener
-        cyrillicInput.addEventListener('input', () => {
-            latinOutput.value = transliterate(cyrillicInput.value);
-        });
+    inputArea.addEventListener('input', () => {
+        outputArea.value = transliterate(inputArea.value);
+    });
+</script>
 
-        // Optimized text copying mechanism
-        let toastTimeout;
-        copyBtn.addEventListener('click', () => {
-            if (!latinOutput.value) return;
-            
-            navigator.clipboard.writeText(latinOutput.value).then(() => {
-                toast.style.display = 'block';
-                clearTimeout(toastTimeout);
-                toastTimeout = setTimeout(() => toast.style.display = 'none', 2000);
-            }).catch(err => console.error('Failed to copy text: ', err));
-        });
-    </script>
 </body>
 </html>
