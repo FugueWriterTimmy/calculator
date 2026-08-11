@@ -1,20 +1,16 @@
 def conjugate_lithuanian(infinitive, pres_3, past_3):
-    # 1. Clean inputs
     inf = infinitive.strip().lower()
     pres_3 = pres_3.strip().lower()
     past_3 = past_3.strip().lower()
     
-    # Remove infinitive suffix 'ti' to get the bare infinitive stem
     inf_stem = inf[:-2] if inf.endswith('ti') else inf
     
-    # 2. Determine Stems and Classes
     pres_ending = pres_3[-1]
     pres_stem = pres_3[:-1]
     
     past_ending = past_3[-1]
     past_stem = past_3[:-1]
     
-    # 3. Present Tense
     pres_forms = {}
     if pres_ending == 'a':
         pres_forms = {"1sg": pres_stem + "u", "2sg": pres_stem + "i", "3sg": pres_3, "1pl": pres_stem + "ame", "2pl": pres_stem + "ate"}
@@ -26,7 +22,6 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         pres_forms = {"1sg": pres_stem + "au", "2sg": pres_stem + "ai", "3sg": pres_3, "1pl": pres_stem + "ome", "2pl": pres_stem + "ote"}
         pres_forms["3pl"] = pres_stem + "ą"
         
-    # 4. Past Tense
     past_forms = {}
     if past_ending == 'o':
         past_forms = {"1sg": past_stem + "au", "2sg": past_stem + "ai", "3sg": past_3, "1pl": past_stem + "ome", "2pl": past_stem + "ote"}
@@ -39,15 +34,12 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         past_forms = {"1sg": p_stem + "iau", "2sg": past_stem + "ei", "3sg": past_3, "1pl": past_stem + "ėme", "2pl": past_stem + "ėte"}
         past_forms["3pl"] = past_stem + "ę"
 
-    # 5. Past Habitual Tense (Stem + -dav- + o endings)
     ph_stem = inf_stem + "dav"
     ph_forms = {
         "1sg": ph_stem + "au", "2sg": ph_stem + "ai", "3sg": ph_stem + "o",
         "1pl": ph_stem + "ome", "2pl": ph_stem + "ote", "3pl": ph_stem + "ą"
     }
 
-    # 6. Future Tense (Infinitive stem + s + endings)
-    # Handle consonantal fusion: š+s->š, ž+s->š, s+s->s, z+s->s, t+s->s, d+s->s
     fut_stem = inf_stem
     if fut_stem.endswith(('š', 'ž')):
         fut_stem = fut_stem[:-1] + 'š'
@@ -61,15 +53,12 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         "1pl": fut_stem + "ime", "2pl": fut_stem + "ite", "3pl": fut_stem + "į"
     }
 
-    # 7. Conditional Tense (Infinitive stem + tų + endings)
     cond_stem = inf_stem
     cond_forms = {
         "1sg": cond_stem + "čiau", "2sg": cond_stem + "tum", "3sg": cond_stem + "tu",
         "1pl": cond_stem + "tume", "2pl": cond_stem + "tute", "3pl": cond_stem + "tų"
     }
 
-    # 8. Imperative Tense (Infinitive stem + k + endings)
-    # Handle consonantal fusion: k+k->k, g+k->k, t+k->k, d+k->k
     imp_stem = inf_stem
     if imp_stem.endswith(('k', 'g', 't', 'd')):
         imp_stem = imp_stem[:-1] + 'k'
@@ -77,20 +66,15 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         imp_stem = imp_stem + 'k'
         
     imp_forms = {
-        "2sg": imp_stem + "",  "3sg": "te" + pres_3,
+        "1sg": imp_stem + "iu", "2sg": imp_stem + "",  "3sg": "te" + pres_3,
         "1pl": imp_stem + "ime", "2pl": imp_stem + "ite", "3pl": "te" + pres_forms["3pl"]
     }
-    # Clean up 2sg display to show standard bare -k stem
+    
     imp_forms["2sg"] = imp_stem
 
-    # Output formatting
     tenses = {
-        "Present": pres_forms,
-        "Past": past_forms,
-        "Past Habitual": ph_forms,
-        "Future": fut_forms,
-        "Conditional": cond_forms,
-        "Imperative": imp_forms
+        "Present": pres_forms, "Past": past_forms, "Past Habitual": ph_forms,
+        "Future": fut_forms, "Conditional": cond_forms, "Imperative": imp_forms
     }
     
     for tense, forms in tenses.items():
@@ -98,4 +82,4 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         for person, form in forms.items():
             print(f"{person}: {form}")
 
-conjugate_lithuanian("dirbti", "dirba", "dirbo")
+conjugate_lithuanian("girsti", "girsta", "girto")
