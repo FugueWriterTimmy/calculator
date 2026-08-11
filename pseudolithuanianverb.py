@@ -69,8 +69,6 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         "1sg": imp_stem + "iu", "2sg": imp_stem + "",  "3sg": "te" + pres_3,
         "1pl": imp_stem + "ime", "2pl": imp_stem + "ite", "3pl": "te" + pres_forms["3pl"]
     }
-    
-    imp_forms["2sg"] = imp_stem
 
     tenses = {
         "Present": pres_forms, "Past": past_forms, "Past Habitual": ph_forms,
