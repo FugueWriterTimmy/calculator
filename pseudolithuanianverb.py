@@ -3,44 +3,64 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
     pres_3 = pres_3.strip().lower()
     past_3 = past_3.strip().lower()
     
-    inf_stem = inf[:-2] if inf.endswith('ti') else inf
+    is_reflexive = inf.endswith('tis')
     
-    pres_ending = pres_3[-1]
-    pres_stem = pres_3[:-1]
+    if is_reflexive:
+        inf_base = inf[:-3]
+        pres_pure = pres_3[:-2] if pres_3.endswith('si') else pres_3
+        past_pure = past_3[:-2] if past_3.endswith('si') else past_3
+    else:
+        inf_base = inf[:-2] if inf.endswith('ti') else inf
+        pres_pure = pres_3
+        past_pure = past_3
+
+    pres_ending = pres_pure[-1]
+    pres_stem = pres_pure[:-1]
     
-    past_ending = past_3[-1]
-    past_stem = past_3[:-1]
+    past_ending = past_pure[-1]
+    past_stem = past_pure[:-1]
     
     pres_forms = {}
     if pres_ending == 'a':
-        pres_forms = {"1sg": pres_stem + "u", "2sg": pres_stem + "i", "3sg": pres_3, "1pl": pres_stem + "ame", "2pl": pres_stem + "ate"}
-        pres_forms["3pl"] = pres_stem + "ą"
+        sg2_form = pres_stem if pres_stem.endswith('i') else pres_stem + "i"
+        pres_forms = {
+            "1sg": pres_stem + "u", "2sg": sg2_form, "3sg": pres_pure, 
+            "1pl": pres_stem + "ame", "2pl": pres_stem + "ate", "3pl": pres_stem + "ą"
+        }
     elif pres_ending == 'i':
-        pres_forms = {"1sg": pres_stem + "iu", "2sg": pres_stem + "i", "3sg": pres_3, "1pl": pres_stem + "ime", "2pl": pres_stem + "ite"}
-        pres_forms["3pl"] = pres_stem + "į"
+        pres_forms = {
+            "1sg": pres_stem + "iu", "2sg": pres_stem + "i", "3sg": pres_pure, 
+            "1pl": pres_stem + "ime", "2pl": pres_stem + "ite", "3pl": pres_stem + "į"
+        }
     elif pres_ending == 'o':
-        pres_forms = {"1sg": pres_stem + "au", "2sg": pres_stem + "ai", "3sg": pres_3, "1pl": pres_stem + "ome", "2pl": pres_stem + "ote"}
-        pres_forms["3pl"] = pres_stem + "ą"
+        pres_forms = {
+            "1sg": pres_stem + "au", "2sg": pres_stem + "ai", "3sg": pres_pure, 
+            "1pl": pres_stem + "ome", "2pl": pres_stem + "ote", "3pl": pres_stem + "ą"
+        }
         
     past_forms = {}
     if past_ending == 'o':
-        past_forms = {"1sg": past_stem + "au", "2sg": past_stem + "ai", "3sg": past_3, "1pl": past_stem + "ome", "2pl": past_stem + "ote"}
-        past_forms["3pl"] = past_stem + "ų" 
+        past_forms = {
+            "1sg": past_stem + "au", "2sg": past_stem + "ai", "3sg": past_pure, 
+            "1pl": past_stem + "ome", "2pl": past_stem + "ote", "3pl": past_stem + "ų"
+        } 
     elif past_ending == 'ė':
         p_stem = past_stem
         if p_stem.endswith('t'): p_stem = p_stem[:-1] + 'č'
         elif p_stem.endswith('d'): p_stem = p_stem[:-1] + 'dž'
         
-        past_forms = {"1sg": p_stem + "iau", "2sg": past_stem + "ei", "3sg": past_3, "1pl": past_stem + "ėme", "2pl": past_stem + "ėte"}
-        past_forms["3pl"] = past_stem + "ę"
+        past_forms = {
+            "1sg": p_stem + "iau", "2sg": past_stem + "ei", "3sg": past_pure, 
+            "1pl": past_stem + "ėme", "2pl": past_stem + "ėte", "3pl": past_stem + "ę"
+        }
 
-    ph_stem = inf_stem + "dav"
+    ph_stem = inf_base + "dav"
     ph_forms = {
         "1sg": ph_stem + "au", "2sg": ph_stem + "ai", "3sg": ph_stem + "o",
         "1pl": ph_stem + "ome", "2pl": ph_stem + "ote", "3pl": ph_stem + "ą"
     }
 
-    fut_stem = inf_stem
+    fut_stem = inf_base
     if fut_stem.endswith(('š', 'ž')):
         fut_stem = fut_stem[:-1] + 'š'
     elif fut_stem.endswith(('s', 'z', 't', 'd')):
@@ -49,35 +69,72 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         fut_stem = fut_stem + 's'
         
     fut_forms = {
-        "1sg": fut_stem + "iu", "2sg": fut_stem + "i", "3sg": fut_stem + "",
+        "1sg": fut_stem + "iu", "2sg": fut_stem + "i", "3sg": fut_stem,
         "1pl": fut_stem + "ime", "2pl": fut_stem + "ite", "3pl": fut_stem + "į"
     }
 
-    cond_stem = inf_stem
+    cond_stem = inf_base
     cond_forms = {
         "1sg": cond_stem + "čiau", "2sg": cond_stem + "tum", "3sg": cond_stem + "tu",
         "1pl": cond_stem + "tume", "2pl": cond_stem + "tute", "3pl": cond_stem + "tų"
     }
 
-    imp_stem = inf_stem
+    imp_stem = inf_base
     if imp_stem.endswith(('k', 'g', 't', 'd')):
         imp_stem = imp_stem[:-1] + 'k'
     else:
         imp_stem = imp_stem + 'k'
         
     imp_forms = {
-        "1sg": imp_stem + "iu", "2sg": imp_stem + "",  "3sg": "te" + pres_3,
+        "1sg": imp_stem + "iu", "2sg": imp_stem + "",  "3sg": "te" + pres_forms["3sg"],
         "1pl": imp_stem + "ime", "2pl": imp_stem + "ite", "3pl": "te" + pres_forms["3pl"]
     }
+
+    if is_reflexive:
+        pres_forms["1sg"] = pres_forms["1sg"][:-1] + "uosi"
+        pres_forms["2sg"] = pres_forms["2sg"][:-1] + "iesi" if pres_forms["2sg"].endswith('i') else pres_forms["2sg"] + "iesi"
+        pres_forms["3sg"] = pres_pure + "si"
+        pres_forms["1pl"] = pres_forms["1pl"][:-2] + "mės"
+        pres_forms["2pl"] = pres_forms["2pl"][:-2] + "tės"
+        pres_forms["3pl"] = pres_forms["3pl"][:-1] + "asi"
+
+        for f in [past_forms, ph_forms]:
+            f["1sg"] = f["1sg"][:-2] + "ausi" if f["1sg"].endswith('au') else f["1sg"][:-3] + "iausi"
+            f["2sg"] = f["2sg"][:-2] + "aisis" if f["2sg"].endswith('ai') else f["2sg"][:-2] + "eisit"
+            f["3sg"] = f["3sg"] + "si"
+            f["1pl"] = f["1pl"][:-2] + "mės"
+            f["2pl"] = f["2pl"][:-2] + "tės"
+            f["3pl"] = f["3pl"][:-1] + "usi" if f["3pl"].endswith('ų') else f["3pl"][:-1] + "esi"
+
+        fut_forms["1sg"] = fut_stem + "iuosi"
+        fut_forms["2sg"] = fut_stem + "iesi"
+        fut_forms["3sg"] = fut_stem + "is"    
+        fut_forms["1pl"] = fut_stem + "imės"
+        fut_forms["2pl"] = fut_stem + "itės"
+        fut_forms["3pl"] = fut_stem + "įs"     
+
+        cond_forms["1sg"] = cond_forms["1sg"][:-3] + "iausi"
+        cond_forms["2sg"] = cond_forms["2sg"] + "is"
+        cond_forms["3sg"] = cond_forms["3sg"] + "i"
+        cond_forms["1pl"] = cond_forms["1pl"][:-2] + "mės"
+        cond_forms["2pl"] = cond_forms["2pl"][:-2] + "tės"
+        cond_forms["3pl"] = cond_forms["3pl"] + "i"
+
+        imp_forms["1sg"] = imp_forms["1sg"][:-1] + "uosi"
+        imp_forms["2sg"] = imp_forms["2sg"] + "is"
+        imp_forms["3sg"] = "te" + pres_forms["3sg"]
+        imp_forms["1pl"] = imp_forms["1pl"][:-2] + "mės"
+        imp_forms["2pl"] = imp_forms["2pl"][:-2] + "tės"
+        imp_forms["3pl"] = "te" + pres_forms["3pl"]
 
     tenses = {
         "Present": pres_forms, "Past": past_forms, "Past Habitual": ph_forms,
         "Future": fut_forms, "Conditional": cond_forms, "Imperative": imp_forms
     }
-    
+
     for tense, forms in tenses.items():
         print(f"\n--- {tense} ---")
         for person, form in forms.items():
             print(f"{person}: {form}")
 
-conjugate_lithuanian("girsti", "girsta", "girto")
+conjugate_lithuanian("traukti", "traukia", "traukė")
