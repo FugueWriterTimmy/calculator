@@ -90,7 +90,7 @@ def conjugate_lithuanian(infinitive, pres_3, past_3):
         "Past Habitual": ph_forms,
         "Future": fut_forms,
         "Conditional": cond_forms,
-        "Imperative (2sg, 1pl, 2pl)": imp_forms
+        "Imperative": imp_forms
     }
     
     for tense, forms in tenses.items():
