@@ -1,0 +1,161 @@
+// Tai, you cheater! Tbf, there's no rule against it ... you're looking for line 150
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Puzzle - Test 2.2</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+    }
+    .wrapper {
+      background-color: #1e293b;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #success-message {
+      font-size: 24px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 25px;
+      min-height: 36px;
+      transition: all 0.3s ease;
+    }
+    .inputs-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .note-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .note-box label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 15px 5px;
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      background-color: #334155;
+      border: 2px solid #475569;
+      color: #ffffff;
+      border-radius: 8px;
+      outline: none;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+    input[type="text"]:focus {
+      border-color: #3b82f6;
+      background-color: #3e526d;
+    }
+    /* Only applied when the whole puzzle is solved */
+    input[type="text"].solved {
+      border-color: #22c55e;
+      background-color: #14532d;
+    }
+    .hint {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <!-- Puzzle Message Header -->
+    <div id="success-message">Enter the combination below...</div>
+
+    <!-- 4 Note Input Elements -->
+    <div class="inputs-container">
+      <div class="note-box">
+        <label>Note 1</label>
+        <input type="text" id="note1" placeholder="e.g., C#" maxlength="3" autocomplete="off">
+      </div>
+      <div class="note-box">
+        <label>Note 2</label>
+        <input type="text" id="note2" placeholder="e.g., F" maxlength="3" autocomplete="off">
+      </div>
+      <div class="note-box">
+        <label>Note 3</label>
+        <input type="text" id="note3" placeholder="e.g., Bb" maxlength="3" autocomplete="off">
+      </div>
+      <div class="note-box">
+        <label>Note 4</label>
+        <input type="text" id="note4" placeholder="e.g., G" maxlength="3" autocomplete="off">
+      </div>
+    </div>
+
+    <p class="hint">B zwk vtujmik vt agtsikarb xubb epgahshn se eqkafpflw avbn if paerjxvrg rcwzhxrf, e miyfdsuh puyyhiau, wj avt vgpqmah wx h anvlimc bs kjpat. Ll qvc of maavtu s pjkvdid moaosgt se b taasgdjc yiijkw avpw divhf smsksgv gv vyqjmfjsh wgavvq b nssgt fgrxphtqgu. O ghv lzvejvy ton ew yniq jvllbilgrvpyz, ik pb bbkxzvl gquawdq gv vw cbzl vt gkwxjvvdid zhgdlibmrt (m.y., pb erdmompt), wj ton ew yniq jv syujpwroegjwf pbpgnimxrobdf.</p>
+  </div>
+
+  <script>
+    const solution = ["B", "D", "F", "Ab"];
+    
+    const inputs = [
+      document.getElementById('note1'),
+      document.getElementById('note2'),
+      document.getElementById('note3'),
+      document.getElementById('note4')
+    ];
+    const messageDisplay = document.getElementById('success-message');
+
+    inputs.forEach(input => {
+      input.addEventListener('input', checkCombination);
+    });
+
+    function checkCombination() {
+      let allCorrect = true;
+
+      // First pass: verify if everything matches perfectly
+      inputs.forEach((input, index) => {
+        let val = input.value.trim();
+        if (val.length > 0) {
+          // Format text (e.g., "ab" or "AB" becomes "Ab")
+          val = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+        }
+
+        if (val !== solution[index]) {
+          allCorrect = false;
+        }
+      });
+
+      if (allCorrect) {
+        inputs.forEach(input => input.classList.add('solved'));
+        messageDisplay.textContent = "Congratulations, you've solved Test 2.2! Now, convert the post timestamp...";
+        messageDisplay.style.color = "#4ade80";
+      } else {
+        inputs.forEach(input => input.classList.remove('solved'));
+        messageDisplay.textContent = "Enter the combination below...";
+        messageDisplay.style.color = "#94a3b8";
+      }
+    }
+  </script>
+
+</body>
+</html>
